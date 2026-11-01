@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hawaii Dates</title>
+<meta name="description" content="Mark the days you could be in Hawaii, Mar 11 – May 21, 2027.">
+<style>
+  :root {
+    --bg: #f7f5f0; --card: #ffffff; --fg: #1f2328; --muted: #5f6670; --line: #e3dfd6;
+    --accent: #0b7a75; --accent-fg: #ffffff; --warn: #9a5b00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181b; --card: #1f2226; --fg: #e8e6e3; --muted: #9aa0a6; --line: #33373c;
+      --accent: #3fb8b0; --accent-fg: #0d1f1e; --warn: #e0a84a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { margin: 0 0 6px; font-size: 1.7rem; line-height: 1.2; }
+  h2 { margin: 0 0 12px; font-size: 1.15rem; }
+  h3 { margin: 0 0 8px; font-size: 1rem; }
+  .lede { margin: 0 0 20px; color: var(--muted); }
+  .lede strong { color: var(--fg); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; margin-bottom: 16px; }
+  .banner { border-color: var(--warn); color: var(--warn); font-size: .92rem; }
+  label { display: block; font-weight: 600; margin-bottom: 6px; }
+  input[type=text], input[type=date], textarea {
+    width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  }
+  textarea { min-height: 72px; resize: vertical; }
+  .hint { color: var(--muted); font-size: .9rem; margin: 4px 0 12px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+  .row > div { flex: 1 1 140px; }
+  button.btn {
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); width: 100%; padding: 14px; font-size: 1.05rem; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 14px; }
+  .toolbar .count { margin-left: auto; color: var(--muted); font-size: .92rem; }
+
+  .months { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .dow { text-align: center; font-size: .75rem; color: var(--muted); padding-bottom: 2px; }
+  .day {
+    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg);
+    font: inherit; font-size: .9rem; padding: 0; line-height: 1.1;
+  }
+  button.day { cursor: pointer; }
+  button.day[aria-pressed=true] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .day.out { border-color: transparent; background: transparent; color: var(--muted); opacity: .35; }
+  .day.blank { visibility: hidden; }
+  .day .n { font-size: .68rem; font-weight: 700; }
+  .heat { cursor: pointer; }
+  .heat.dark { color: var(--accent-fg); }
+  .heat.sel { outline: 2px solid var(--fg); outline-offset: 1px; }
+
+  .choices { display: grid; gap: 8px; }
+  .choices label { font-weight: 400; display: flex; gap: 10px; align-items: center; margin: 0;
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+  .choices input { accent-color: var(--accent); width: 18px; height: 18px; }
+  #status { font-weight: 600; color: var(--accent); min-height: 1.5em; margin: 10px 0 0; }
+  #status.err { color: var(--warn); }
+  .windows { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .windows li { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .windows .when { font-weight: 700; }
+  .windows .who { color: var(--muted); font-size: .9rem; }
+  #day-detail { margin-top: 12px; font-size: .92rem; min-height: 1.4em; }
+  .legend { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--muted); margin: 0 0 12px; }
+  .legend .bar { flex: 0 0 120px; height: 10px; border-radius: 5px;
+    background: linear-gradient(90deg, var(--card), var(--accent)); border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<main>
+  <h1>🌴 Hawaii 2027: when can you go?</h1>
+  <p class="lede">
+    We're renting one <strong>long-term Airbnb for 3–4 weeks</strong>, sometime between
+    <strong>Mar 11 and May 21, 2027</strong>. Mark every day you <em>could</em> be there.
+    Where we stay and what we do, we'll decide together later. This is just dates.
+  </p>
+
+  <div class="card banner" id="preview-banner" hidden>
+    Preview mode: no response endpoint set, so answers are saved only in this browser.
+  </div>
+
+  <section class="card">
+    <h2>1. Who are you?</h2>
+    <label for="name">First name</label>
+    <input type="text" id="name" autocomplete="given-name" maxlength="40">
+    <p class="hint">Use the same name to come back and change your answers.</p>
+  </section>
+
+  <section class="card">
+    <h2>2. Tap the days you're free</h2>
+    <p class="hint">Fastest way: <strong>Select all</strong>, then tap off the days you can't do. Or add a range below.</p>
+    <div class="row">
+      <div><label for="from">From</label><input type="date" id="from"></div>
+      <div><label for="to">To</label><input type="date" id="to"></div>
+      <button class="btn" id="add-range" type="button">Add range</button>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="select-all" type="button">Select all</button>
+      <button class="btn" id="clear" type="button">Clear</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="months" id="my-calendar"></div>
+  </section>
+
+  <section class="card">
+    <h2>3. How long could you stay?</h2>
+    <div class="choices" id="stay">
+      <label><input type="radio" name="stay" value="4 weeks"> The whole thing (4 weeks)</label>
+      <label><input type="radio" name="stay" value="3 weeks"> About 3 weeks</label>
+      <label><input type="radio" name="stay" value="2 weeks"> About 2 weeks</label>
+      <label><input type="radio" name="stay" value="under 2 weeks"> Less than 2 weeks</label>
+    </div>
+    <label for="notes" style="margin-top:14px">Anything else? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <textarea id="notes" maxlength="500" placeholder="e.g. could work remote the last week, need to be back for a wedding May 15…"></textarea>
+  </section>
+
+  <button class="btn primary" id="submit" type="button">Send my dates</button>
+  <p id="status" role="status"></p>
+
+  <section class="card" style="margin-top:24px">
+    <h2>Group availability</h2>
+    <p class="hint" id="summary">Loading…</p>
+    <h3>Best windows</h3>
+    <ul class="windows" id="windows"></ul>
+    <h3 style="margin-top:20px">Everyone's days</h3>
+    <div class="legend"><span>0</span><span class="bar"></span><span id="legend-max"></span></div>
+    <div class="months" id="heat-calendar"></div>
+    <div id="day-detail"></div>
+  </section>
+</main>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────
+const TRIP = '2027-04-hawaii';
+const EXERCISE = 'dates';
+const ENDPOINT = '';                 // Apps Script /exec URL (see TOOLS.md)
+const WINDOW_START = '2027-03-11';   // April ± 3 weeks
+const WINDOW_END = '2027-05-21';
+const CREW_SIZE = 6;
+const STAY_LENGTHS = [28, 21];       // windows to suggest, in days
+// ────────────────────────────────────────────────────────────────────────
+
+const DAY_MS = 86400000;
+const toKey = (t) => new Date(t).toISOString().slice(0, 10);
+const toTime = (k) => Date.parse(k + 'T00:00:00Z');
+const fmt = (k, opts = { month: 'short', day: 'numeric' }) =>
+  new Date(toTime(k)).toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' });
+
+const allDays = [];
+for (let t = toTime(WINDOW_START); t <= toTime(WINDOW_END); t += DAY_MS) allDays.push(toKey(t));
+const inWindow = new Set(allDays);
+
+const store = {
+  get(k, fallback) { try { const v = localStorage.getItem(k); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const LOCAL_KEY = `${TRIP}/${EXERCISE}`;
+
+const $ = (id) => document.getElementById(id);
+const selected = new Set();
+
+// Draws month grids covering the window; renderDay(key, dayNum) returns the cell for in-window days.
+function renderMonths(container, renderDay) {
+  container.innerHTML = '';
+  const months = [...new Set(allDays.map((k) => k.slice(0, 7)))];
+  for (const ym of months) {
+    const [y, m] = ym.split('-').map(Number);
+    const first = Date.UTC(y, m - 1, 1);
+    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const wrap = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = fmt(toKey(first), { month: 'long', year: 'numeric' });
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    for (const d of 'SMTWTFS') grid.insertAdjacentHTML('beforeend', `<div class="dow">${d}</div>`);
+    for (let i = 0; i < new Date(first).getUTCDay(); i++) grid.insertAdjacentHTML('beforeend', '<div class="day blank"></div>');
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = toKey(Date.UTC(y, m - 1, d));
+      if (inWindow.has(key)) {
+        grid.append(renderDay(key, d));
+      } else {
+        grid.insertAdjacentHTML('beforeend', `<div class="day out" aria-hidden="true">${d}</div>`);
+      }
+    }
+    wrap.append(title, grid);
+    container.append(wrap);
+  }
+}
+
+// ── My calendar ──
+function drawMine() {
+  renderMonths($('my-calendar'), (key, d) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'day';
+    b.textContent = d;
+    b.setAttribute('aria-pressed', selected.has(key));
+    b.setAttribute('aria-label', fmt(key, { weekday: 'long', month: 'long', day: 'numeric' }));
+    b.onclick = () => {
+      selected.has(key) ? selected.delete(key) : selected.add(key);
+      b.setAttribute('aria-pressed', selected.has(key));
+      updateCount();
+    };
+    return b;
+  });
+  updateCount();
+}
+function updateCount() {
+  $('count').textContent = `${selected.size} day${selected.size === 1 ? '' : 's'} selected`;
+}
+
+$('from').min = $('to').min = WINDOW_START;
+$('from').max = $('to').max = WINDOW_END;
+$('add-range').onclick = () => {
+  let a = $('from').value, b = $('to').value;
+  if (!a || !b) { setStatus('Pick both a From and a To date.', true); return; }
+  if (a > b) [a, b] = [b, a];
+  allDays.filter((k) => k >= a && k <= b).forEach((k) => selected.add(k));
+  setStatus('');
+  drawMine();
+};
+$('select-all').onclick = () => { allDays.forEach((k) => selected.add(k)); drawMine(); };
+$('clear').onclick = () => { selected.clear(); drawMine(); };
+
+function setStatus(msg, isErr = false) {
+  $('status').textContent = msg;
+  $('status').classList.toggle('err', isErr);
+}
+
+function loadIntoForm(r) {
+  selected.clear();
+  r.dates.forEach((k) => inWindow.has(k) && selected.add(k));
+  document.querySelectorAll('input[name=stay]').forEach((el) => { el.checked = el.value === r.stay; });
+  $('notes').value = r.notes || '';
+  drawMine();
+}
+
+// ── Responses ──
+let responses = [];
+
+async function fetchResponses() {
+  let rows;
+  if (ENDPOINT) {
+    const res = await fetch(`${ENDPOINT}?trip=${encodeURIComponent(TRIP)}&exercise=${encodeURIComponent(EXERCISE)}`);
+    rows = (await res.json()).rows;
+  } else {
+    rows = store.get(LOCAL_KEY, []);
+  }
+  // Latest submission per name wins; rows are in submission order.
+  const byName = new Map();
+  for (const row of rows) {
+    const name = String(row.name || '').trim();
+    if (!name) continue;
+    let dates = row.dates;
+    if (typeof dates === 'string') { try { dates = JSON.parse(dates); } catch { dates = []; } }
+    byName.set(name.toLowerCase(), { name, dates: dates || [], stay: row.stay || '', notes: row.notes || '' });
+  }
+  return [...byName.values()];
+}
+
+async function refreshResults() {
+  try {
+    responses = await fetchResponses();
+  } catch (err) {
+    $('summary').textContent = 'Couldn\'t load group results right now. Your answers can still be sent.';
+    return;
+  }
+  drawResults();
+}
+
+function drawResults() {
+  const n = responses.length;
+  $('summary').textContent = n
+    ? `${n} of ${CREW_SIZE} responded: ${responses.map((r) => r.name).join(', ')}`
+    : 'No responses yet. You could be first!';
+
+  const sets = responses.map((r) => ({ name: r.name, days: new Set(r.dates) }));
+  const counts = Object.fromEntries(allDays.map((k) => [k, sets.filter((s) => s.days.has(k)).length]));
+  const max = Math.max(1, n);
+  $('legend-max').textContent = `${n} ${n === 1 ? 'person' : 'people'}`;
+
+  let selectedCell = null;
+  renderMonths($('heat-calendar'), (key, d) => {
+    const c = counts[key];
+    const pct = Math.round((c / max) * 100);
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.className = 'day heat' + (pct > 55 ? ' dark' : '');
+    cell.style.background = `color-mix(in srgb, var(--accent) ${pct}%, var(--card))`;
+    cell.innerHTML = `${d}<span class="n">${c || ''}</span>`;
+    cell.setAttribute('aria-label', `${fmt(key)}: ${c} free`);
+    cell.onclick = () => {
+      selectedCell?.classList.remove('sel');
+      cell.classList.add('sel');
+      selectedCell = cell;
+      const free = sets.filter((s) => s.days.has(key)).map((s) => s.name);
+      const notFree = sets.filter((s) => !s.days.has(key)).map((s) => s.name);
+      $('day-detail').textContent = `${fmt(key, { weekday: 'short', month: 'short', day: 'numeric' })}: `
+        + (free.length ? `free: ${free.join(', ')}` : 'nobody free yet')
+        + (notFree.length ? ` · not free: ${notFree.join(', ')}` : '');
+    };
+    return cell;
+  });
+  $('day-detail').textContent = n ? 'Tap a day to see who\'s free.' : '';
+
+  drawWindows(sets);
+}
+
+// For each stay length, rank start dates by how many people are free for the whole stretch
+// (ties broken by total person-days), skipping starts within a week of one already listed.
+function drawWindows(sets) {
+  const list = $('windows');
+  list.innerHTML = '';
+  if (!sets.length) { list.innerHTML = '<li class="who">Shows up once people respond.</li>'; return; }
+  for (const len of STAY_LENGTHS) {
+    const candidates = [];
+    for (let i = 0; i + len <= allDays.length; i++) {
+      const span = allDays.slice(i, i + len);
+      const full = sets.filter((s) => span.every((k) => s.days.has(k)));
+      const personDays = sets.reduce((sum, s) => sum + span.filter((k) => s.days.has(k)).length, 0);
+      candidates.push({ i, span, full, personDays });
+    }
+    candidates.sort((a, b) => b.full.length - a.full.length || b.personDays - a.personDays || a.i - b.i);
+    const picked = [];
+    for (const c of candidates) {
+      if (picked.length === 2) break;
+      if (picked.some((p) => Math.abs(p.i - c.i) < 7)) continue;
+      picked.push(c);
+    }
+    for (const p of picked) {
+      const missing = sets.filter((s) => !p.full.includes(s)).map((s) => s.name);
+      const li = document.createElement('li');
+      li.innerHTML = `<div class="when"></div><div class="who"></div>`;
+      li.querySelector('.when').textContent =
+        `${len / 7} weeks: ${fmt(p.span[0])} – ${fmt(p.span[p.span.length - 1])}`;
+      li.querySelector('.who').textContent =
+        `${p.full.length} of ${sets.length} free the whole time` + (missing.length ? ` · partial/out: ${missing.join(', ')}` : '');
+      list.append(li);
+    }
+  }
+}
+
+// ── Submit ──
+$('submit').onclick = async () => {
+  const name = $('name').value.trim();
+  if (!name) { setStatus('Add your first name first.', true); $('name').focus(); return; }
+  if (!selected.size && !confirm('No days selected. Send this as "can\'t make it"?')) return;
+  const answers = {
+    name,
+    dates: [...selected].sort(),
+    stay: document.querySelector('input[name=stay]:checked')?.value || '',
+    notes: $('notes').value.trim()
+  };
+  store.set('name', name);
+  $('submit').disabled = true;
+  setStatus('Sending…');
+  try {
+    if (ENDPOINT) {
+      // text/plain + no-cors avoids a CORS preflight, which Apps Script doesn't answer.
+      await fetch(ENDPOINT, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ trip: TRIP, exercise: EXERCISE, answers })
+      });
+    } else {
+      store.set(LOCAL_KEY, [...store.get(LOCAL_KEY, []), answers]);
+    }
+    setStatus('Got it, thanks! 🤙 Change anything and send again to update.');
+    await refreshResults();
+  } catch (err) {
+    setStatus('Couldn\'t send. Screenshot your calendar and drop it in the group chat.', true);
+  } finally {
+    $('submit').disabled = false;
+  }
+};
+
+// Returning visitor: prefill their last answers.
+$('name').addEventListener('change', () => {
+  const r = responses.find((x) => x.name.toLowerCase() === $('name').value.trim().toLowerCase());
+  if (r && !selected.size) loadIntoForm(r);
+});
+
+(async function init() {
+  $('preview-banner').hidden = !!ENDPOINT;
+  $('name').value = store.get('name', '');
+  drawMine();
+  await refreshResults();
+  const mine = responses.find((x) => x.name.toLowerCase() === $('name').value.trim().toLowerCase());
+  if (mine) loadIntoForm(mine);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Sensitive trip material: confirmations, passport info, receipts
+trips/*/private/*
+!trips/*/private/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
