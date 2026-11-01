@@ -5,26 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hawaii Dates</title>
 <meta name="description" content="Mark the days you could be in Hawaii, Mar 11 – May 21, 2027.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
 <style>
   :root {
-    --bg: #f7f5f0; --card: #ffffff; --fg: #1f2328; --muted: #5f6670; --line: #e3dfd6;
-    --accent: #0b7a75; --accent-fg: #ffffff; --warn: #9a5b00;
+    --bg: #fdf5e6; --card: #fffdf8; --fg: #1d2b36; --muted: #5a6872; --line: #eadfca;
+    --accent: #0a8a8f; --accent-fg: #ffffff; --coral: #cf4b3e; --coral-fg: #ffffff; --warn: #a35a00;
+    /* beach scene: sunny afternoon */
+    --sky-1: #5ec4ee; --sky-2: #a9e6fb; --sky-3: #e3f9ff;
+    --sun: #ffd84d; --sun-glow: rgba(255, 216, 77, .45); --sun-top: 14%; --sun-right: 12%; --sun-size: 62px;
+    --ocean-1: #2bb7cc; --ocean-2: #1689a6; --sand-1: #f6dfae; --sand-2: #ecc98a;
+    --cloud: rgba(255, 255, 255, .92); --hero-fg: #0b3a4c; --hero-shadow: rgba(255, 255, 255, .6);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #16181b; --card: #1f2226; --fg: #e8e6e3; --muted: #9aa0a6; --line: #33373c;
-      --accent: #3fb8b0; --accent-fg: #0d1f1e; --warn: #e0a84a;
+      --bg: #101b27; --card: #172433; --fg: #eef3f6; --muted: #9db0bd; --line: #2a3b4d;
+      --accent: #41c7c7; --accent-fg: #062226; --coral: #ff8a7a; --coral-fg: #2a0f0b; --warn: #f0b45a;
+      /* beach scene: sunset */
+      --sky-1: #241f4f; --sky-2: #8d4a7a; --sky-3: #f39a63;
+      --sun: #ffb36b; --sun-glow: rgba(255, 150, 90, .55); --sun-top: 38%; --sun-right: 24%; --sun-size: 96px;
+      --ocean-1: #2a5a7a; --ocean-2: #143650; --sand-1: #c9a576; --sand-2: #a8875d;
+      --cloud: rgba(255, 200, 190, .45); --hero-fg: #fff7ef; --hero-shadow: rgba(30, 10, 40, .55);
     }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { margin: 0 0 6px; font-size: 1.7rem; line-height: 1.2; }
-  h2 { margin: 0 0 12px; font-size: 1.15rem; }
-  h3 { margin: 0 0 8px; font-size: 1rem; }
-  .lede { margin: 0 0 20px; color: var(--muted); }
-  .lede strong { color: var(--fg); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; margin-bottom: 16px; }
+  main { position: relative; z-index: 5; max-width: 760px; margin: -20px auto 0; padding: 0 16px 48px; }
+  h1, h2, h3, button.primary { font-family: 'Fredoka', system-ui, sans-serif; }
+  h1 { margin: 0; font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1.1; font-weight: 700; }
+  h2 { margin: 0 0 12px; font-size: 1.25rem; font-weight: 600; }
+  h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 600; }
+  .lede { margin: 0; }
+  footer { text-align: center; color: var(--muted); font-size: .9rem; padding: 8px 16px 40px; }
+
+  /* ── Beach hero ── */
+  .hero { position: relative; height: clamp(320px, 50vh, 460px); overflow: hidden; color: var(--hero-fg); }
+  .hero > * { position: absolute; }
+  .sky { inset: 0; background: linear-gradient(var(--sky-1), var(--sky-2) 35%, var(--sky-3) 50%); }
+  .sun { top: var(--sun-top); right: var(--sun-right); width: var(--sun-size); height: var(--sun-size);
+    border-radius: 50%; background: var(--sun); box-shadow: 0 0 40px 18px var(--sun-glow); }
+  .cloud { width: 110px; left: 0; opacity: 1; animation: drift linear infinite; }
+  .cloud path { fill: var(--cloud); }
+  .cloud.c1 { top: 9%; animation-duration: 95s; animation-delay: -30s; }
+  .cloud.c2 { top: 24%; width: 80px; animation-duration: 130s; animation-delay: -85s; }
+  .cloud.c3 { top: 15%; width: 64px; animation-duration: 160s; animation-delay: -10s; }
+  @keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(110vw); } }
+  .ocean { left: 0; right: 0; top: 50%; bottom: 18%;
+    background: linear-gradient(var(--ocean-1), var(--ocean-2)); }
+  .ocean::before, .ocean::after { content: ''; position: absolute; left: 0; right: 0; height: 12px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='12'%3E%3Cpath d='M0 6 Q15 0 30 6 T60 6 T90 6 T120 6' stroke='white' stroke-opacity='.35' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") repeat-x;
+    animation: waves 9s linear infinite; }
+  .ocean::before { top: 18%; }
+  .ocean::after { top: 52%; animation-direction: reverse; animation-duration: 13s; }
+  @keyframes waves { from { background-position-x: 0; } to { background-position-x: 120px; } }
+  .sand { left: 0; right: 0; top: 70%; bottom: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,.06) 1px, transparent 1.5px) 0 0 / 14px 14px,
+      radial-gradient(circle at 70% 80%, rgba(255,255,255,.25) 1px, transparent 1.5px) 0 0 / 18px 18px,
+      linear-gradient(var(--sand-1), var(--sand-2)); }
+  .sand::before { content: ''; position: absolute; left: 0; right: 0; top: -10px; height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='16'%3E%3Cpath d='M0 8 Q15 0 30 8 T60 8 T90 8 T120 8 V16 H0Z' fill='white' fill-opacity='.85'/%3E%3C/svg%3E") repeat-x;
+    animation: surf 7s ease-in-out infinite alternate; }
+  @keyframes surf { from { transform: translateY(-3px); background-position-x: 0; } to { transform: translateY(4px); background-position-x: 60px; } }
+  .palm { bottom: 9%; height: 82%; z-index: 2; }
+  .palm-l { left: -40px; }
+  .palm-r { right: -40px; transform: scaleX(-1); }
+  .palm .fronds { transform-box: view-box; transform-origin: 62px 70px; animation: sway 5s ease-in-out infinite alternate; }
+  @keyframes sway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+  .walkers { inset: 0; }
+  .hero-text { left: 0; right: 0; top: 0; z-index: 4; max-width: 760px; margin: 0 auto; padding: 28px 16px 0;
+    text-shadow: 0 1px 12px var(--hero-shadow); }
+  .kicker { margin: 0 0 4px; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600; font-size: 1.05rem; }
+  @media (max-width: 480px) { .palm { height: 70%; } .palm-l { left: -56px; } .palm-r { right: -56px; } }
+  @media (prefers-reduced-motion: reduce) { .hero *, .hero *::before, .hero *::after { animation: none !important; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 16px; margin-bottom: 16px;
+    box-shadow: 0 6px 20px rgba(20, 60, 80, .08); }
   .banner { border-color: var(--warn); color: var(--warn); font-size: .92rem; }
   label { display: block; font-weight: 600; margin-bottom: 6px; }
   input[type=text], input[type=date], textarea {
@@ -39,7 +95,9 @@
     font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: pointer;
     border: 1px solid var(--line); background: var(--bg); color: var(--fg);
   }
-  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); width: 100%; padding: 14px; font-size: 1.05rem; }
+  button.primary { background: var(--coral); color: var(--coral-fg); border-color: var(--coral); width: 100%; padding: 14px;
+    font-size: 1.2rem; border-radius: 999px; box-shadow: 0 6px 18px rgba(207, 75, 62, .3); }
+  button.primary:disabled { opacity: .6; }
   .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 14px; }
   .toolbar .count { margin-left: auto; color: var(--muted); font-size: .92rem; }
 
@@ -77,13 +135,56 @@
 </style>
 </head>
 <body>
+<header class="hero">
+  <div class="sky"></div>
+  <div class="sun"></div>
+  <svg class="cloud c1" viewBox="0 0 64 32" aria-hidden="true"><path d="M10 30 Q0 30 2 22 Q4 14 14 16 Q16 4 30 6 Q40 0 48 10 Q60 8 60 20 Q66 30 54 30 Z"/></svg>
+  <svg class="cloud c2" viewBox="0 0 64 32" aria-hidden="true"><path d="M10 30 Q0 30 2 22 Q4 14 14 16 Q16 4 30 6 Q40 0 48 10 Q60 8 60 20 Q66 30 54 30 Z"/></svg>
+  <svg class="cloud c3" viewBox="0 0 64 32" aria-hidden="true"><path d="M10 30 Q0 30 2 22 Q4 14 14 16 Q16 4 30 6 Q40 0 48 10 Q60 8 60 20 Q66 30 54 30 Z"/></svg>
+  <div class="ocean"></div>
+  <div class="sand"></div>
+  <svg class="palm palm-l" viewBox="0 0 140 240" aria-hidden="true">
+    <path d="M80 240 Q88 160 62 70" stroke="#7a4e2d" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M80 240 Q88 160 62 70" stroke="#5e3b21" stroke-width="11" fill="none" stroke-dasharray="2 9"/>
+    <g class="fronds">
+      <path d="M62 70 Q30 40 2 62 Q34 48 62 74Z" fill="#2f8f4e"/>
+      <path d="M62 70 Q40 20 10 22 Q42 34 62 72Z" fill="#3aa35c"/>
+      <path d="M62 70 Q74 22 104 14 Q80 36 64 72Z" fill="#2f8f4e"/>
+      <path d="M62 70 Q102 44 136 62 Q100 54 64 74Z" fill="#3aa35c"/>
+      <path d="M62 70 Q96 86 112 120 Q88 92 62 74Z" fill="#2a7f45"/>
+      <path d="M62 70 Q30 82 16 118 Q38 90 62 74Z" fill="#2a7f45"/>
+      <circle cx="58" cy="76" r="5" fill="#6b4a2b"/><circle cx="66" cy="78" r="5" fill="#5a3d22"/>
+    </g>
+  </svg>
+  <svg class="palm palm-r" viewBox="0 0 140 240" aria-hidden="true">
+    <path d="M80 240 Q88 160 62 70" stroke="#7a4e2d" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M80 240 Q88 160 62 70" stroke="#5e3b21" stroke-width="11" fill="none" stroke-dasharray="2 9"/>
+    <g class="fronds">
+      <path d="M62 70 Q30 40 2 62 Q34 48 62 74Z" fill="#2f8f4e"/>
+      <path d="M62 70 Q40 20 10 22 Q42 34 62 72Z" fill="#3aa35c"/>
+      <path d="M62 70 Q74 22 104 14 Q80 36 64 72Z" fill="#2f8f4e"/>
+      <path d="M62 70 Q102 44 136 62 Q100 54 64 74Z" fill="#3aa35c"/>
+      <path d="M62 70 Q96 86 112 120 Q88 92 62 74Z" fill="#2a7f45"/>
+      <path d="M62 70 Q30 82 16 118 Q38 90 62 74Z" fill="#2a7f45"/>
+      <circle cx="58" cy="76" r="5" fill="#6b4a2b"/><circle cx="66" cy="78" r="5" fill="#5a3d22"/>
+    </g>
+  </svg>
+  <div class="walkers" id="walkers"></div>
+  <div class="hero-text">
+    <p class="kicker">Aloha, crew 🌺</p>
+    <h1>Hawaii 2027:<br>when can you go?</h1>
+  </div>
+</header>
+
 <main>
-  <h1>🌴 Hawaii 2027: when can you go?</h1>
-  <p class="lede">
-    We're renting one <strong>long-term Airbnb for 3–4 weeks</strong>, sometime between
-    <strong>Mar 11 and May 21, 2027</strong>. Mark every day you <em>could</em> be there.
-    Where we stay and what we do, we'll decide together later. This is just dates.
-  </p>
+  <section class="card">
+    <h2>The plan 🌴</h2>
+    <p class="lede">
+      We're renting one <strong>long-term Airbnb for 3–4 weeks</strong>, sometime between
+      <strong>Mar 11 and May 21, 2027</strong>. Mark every day you <em>could</em> be there.
+      Which island, where we stay, and what we do, we'll decide together later. This is just dates.
+    </p>
+  </section>
 
   <div class="card banner" id="preview-banner" hidden>
     Preview mode: no response endpoint set, so answers are saved only in this browser.
@@ -138,7 +239,9 @@
     <div id="day-detail"></div>
   </section>
 </main>
+<footer>Mahalo! 🤙 Questions? Ask in the group chat.</footer>
 
+<script src="../../assets/crew.js"></script>
 <script>
 // ── Config ──────────────────────────────────────────────────────────────
 const TRIP = '2027-04-hawaii';
@@ -391,6 +494,7 @@ $('name').addEventListener('change', () => {
 });
 
 (async function init() {
+  Crew.walk($('walkers'));
   $('preview-banner').hidden = !!ENDPOINT;
   $('name').value = store.get('name', '');
   drawMine();
