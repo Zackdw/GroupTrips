@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="../../assets/fx/hawaii-dates.css">
 <style>
   :root {
     --bg: #fdf5e6; --card: #fffdf8; --fg: #1d2b36; --muted: #5a6872; --line: #eadfca;
@@ -40,7 +41,13 @@
   footer { text-align: center; color: var(--muted); font-size: .9rem; padding: 8px 16px 40px; }
 
   /* ── Beach hero ── */
-  .hero { position: relative; height: clamp(320px, 50vh, 460px); overflow: hidden; color: var(--hero-fg); }
+  .hero { position: relative; z-index: 1; height: clamp(370px, 56vh, 520px); overflow: hidden; color: var(--hero-fg); }
+  h1.hero-title, #hero-title { padding-bottom: .12em; }
+  /* Fruit Gang strawberries drifting behind the page (drawn by assets/fx) */
+  .berries { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .2; }
+  .berries canvas { width: 100%; height: 100%; display: block; }
+  @media (prefers-color-scheme: dark) { .berries { opacity: .28; } }
+  footer { position: relative; z-index: 2; }
   .hero > * { position: absolute; }
   .sky { inset: 0; background: linear-gradient(var(--sky-1), var(--sky-2) 35%, var(--sky-3) 50%); }
   .sun { top: var(--sun-top); right: var(--sun-right); width: var(--sun-size); height: var(--sun-size);
@@ -135,6 +142,7 @@
 </style>
 </head>
 <body>
+<div class="berries" id="strawberries" aria-hidden="true"></div>
 <header class="hero">
   <div class="sky"></div>
   <div class="sun"></div>
@@ -171,8 +179,8 @@
   </svg>
   <div class="walkers" id="walkers"></div>
   <div class="hero-text">
-    <p class="kicker">Aloha, crew 🌺</p>
-    <h1>Hawaii 2027:<br>when can you go?</h1>
+    <p class="kicker">Aloha, Fruit Gang 🍓</p>
+    <h1 id="hero-title">Hawaii 2027: when can you go?</h1>
   </div>
 </header>
 
@@ -503,5 +511,6 @@ $('name').addEventListener('change', () => {
   if (mine) loadIntoForm(mine);
 })();
 </script>
+<script src="../../assets/fx/hawaii-dates.js"></script>
 </body>
 </html>

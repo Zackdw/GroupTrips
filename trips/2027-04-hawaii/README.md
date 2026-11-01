@@ -3,7 +3,7 @@
 **Status:** Idea · gathering input
 **Dates:** ~1 month starting in April 2027 (exact dates TBD)
 **Where:** Hawaii — island(s) TBD
-**Group chat:** Messenger — "<chat name>"
+**Group chat:** Messenger — "Fruit Gang" 🍓
 **Date poll:** https://zackdw.github.io/GroupTrips/2027-04-hawaii/dates/ (custom calendar, due Sun Nov 8)
 **Exercise site:** docs/2027-04-hawaii/ · responses → Google Sheet "GroupTrips responses", tab `2027-04-hawaii/dates`
 

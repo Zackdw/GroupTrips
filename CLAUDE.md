@@ -18,6 +18,8 @@ Repo for planning group trips with friends. Not a software project — mostly ma
 ## Exercise pages (`docs/<trip>/`)
 
 - Start from `templates/exercise/index.html` → `docs/<trip>/<exercise>/index.html`; edit only the config block at the top. Libraries and why: see `TOOLS.md`.
+- Animated effects (React Bits components + 3D strawberries) are source in `fx/` and built into `docs/assets/fx/`. After changing anything in `fx/src/`, run `npm run build` in `fx/` and commit the built output; GitHub Pages has no build step. Pages work without the bundle (it only adds effects), so keep page logic in the page's own script.
+- The Hawaii group chat is "Fruit Gang" on Messenger. Everyone has a strawberry tattoo; strawberries are the group motif.
 - Shared page assets live in `docs/assets/`. `crew.js` draws the Hawaii crew as SVG chibis (`Crew.walk(el)` for the walking-beach scene); see `docs/2027-04-hawaii/dates/` for the beach hero. Never commit the source photos (repo is public).
 - Self-contained static HTML (inline CSS/JS, CDN libs pinned to exact versions). Must work well on a phone — most people open links from Messenger.
 - GitHub Pages has no backend; responses go to a Google Apps Script web app (`templates/exercise/apps-script/Code.gs`) writing to one Google Sheet, one tab per `<trip>/<exercise>`. Note the endpoint in the trip README.

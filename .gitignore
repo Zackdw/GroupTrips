@@ -7,3 +7,6 @@ trips/*/private/*
 Thumbs.db
 desktop.ini
 .vscode/
+
+# fx build tooling
+fx/node_modules/

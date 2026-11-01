@@ -38,6 +38,17 @@
     bob: (c) => `<path d="M12 31 Q11 10 32 9 Q53 10 52 30 Q46 18 36 18 Q28 25 13 33 Z" fill="${c}"/>`,
   };
 
+  // Heads are drawn on a 1x grid and scaled 2x around the chin (32, 50) for the big-head chibi look.
+  const HEAD_SCALE = 'translate(32 50) scale(2) translate(-32 -50)';
+  const VIEWBOX = '-24 -50 112 150';
+
+  // Fruit Gang: everyone has a strawberry tattoo (forearm, or calf when sleeves cover the arm).
+  function strawberryTattoo(x, y) {
+    return `<g transform="translate(${x} ${y}) scale(.9)">
+      <path d="M0 -2 Q3 -2.2 3 .5 Q2.6 3 0 4.2 Q-2.6 3 -3 .5 Q-3 -2.2 0 -2 Z" fill="#e63950"/>
+      <path d="M-2.2 -2 L0 -3.4 L2.2 -2 L0 -1.3 Z" fill="#3a9a4a"/></g>`;
+  }
+
   function lei(y) {
     const colors = ['#ff6f91', '#ffd166', '#ffffff', '#ff8fab'];
     let out = '';
@@ -57,7 +68,8 @@
     let g = `<rect x="${x}" y="54" width="7" height="17" rx="3.5" fill="${skinArm ? p.skin : p.top}"/>`;
     if (p.sleeves === 'short') g += `<rect x="${x - 0.5}" y="53.5" width="8" height="7.5" rx="3.5" fill="${p.top}"/>`;
     if (p.outfit === 'dress') g += `<ellipse cx="${hx}" cy="57" rx="4.6" ry="3.4" fill="${p.top}" stroke="#e6e2d8" stroke-width=".6"/>`;
-    if (p.armTattoos) g += `<path d="M${hx - 1} 58 q2 2 0 4 q-2 2 0 4 M${hx + 1} 63 l1.5 1.5" stroke="#3f5f55" stroke-width="1.1" fill="none" opacity=".65"/>`;
+    if (p.armTattoos && side === 'a') g += `<path d="M${hx - 1} 58 q2 2 0 4 q-2 2 0 4 M${hx + 1} 63 l1.5 1.5" stroke="#3f5f55" stroke-width="1.1" fill="none" opacity=".65"/>`;
+    if (side === 'b' && skinArm) g += strawberryTattoo(hx, 64);
     g += `<circle cx="${hx}" cy="71.5" r="3.4" fill="${p.skin}"/>`;
     return `<g class="arm arm-${side}">${g}</g>`;
   }
@@ -71,12 +83,12 @@
       s.push(`<g transform="rotate(10 54 58)"><ellipse cx="54" cy="58" rx="6.5" ry="28" fill="#fff4d2" stroke="#e0a43a" stroke-width="1"/>
         <path d="M54 31 V85" stroke="#2fa3b5" stroke-width="2"/></g>`);
     }
-    if (HAIR_BACK[p.hairStyle]) s.push(HAIR_BACK[p.hairStyle](p.hair));
+    if (HAIR_BACK[p.hairStyle]) s.push(`<g transform="${HEAD_SCALE}">${HAIR_BACK[p.hairStyle](p.hair)}</g>`);
 
     // Legs + shoes
     for (const [side, x] of [['a', 24], ['b', 33]]) {
       let g = `<rect x="${x}" y="72" width="7" height="17" rx="3" fill="${p.skin}"/>`;
-      if (p.legTattoo && side === 'a') g += `<circle cx="${x + 3.5}" cy="85" r="1.8" fill="none" stroke="#33415a" stroke-width=".8"/>`;
+      if (side === 'b' && p.sleeves === 'long') g += strawberryTattoo(x + 3.5, 80);
       g += `<ellipse cx="${x + 3}" cy="90" rx="5" ry="2.8" fill="${p.shoes}"/>`;
       if (p.outfit === 'dress') g += `<rect x="${x - 1.5}" y="90.5" width="9" height="1.4" rx=".7" fill="#ffffff"/>`;
       s.push(`<g class="leg leg-${side}">${g}</g>`);
@@ -104,7 +116,8 @@
     if (p.lei) s.push(lei(54));
     s.push(arm(p, 'a'), arm(p, 'b'));
 
-    // Head
+    // Head (drawn at 1x, scaled up around the chin)
+    s.push(`<g transform="${HEAD_SCALE}">`);
     s.push(`<circle cx="12.5" cy="32" r="3.6" fill="${p.skin}"/><circle cx="51.5" cy="32" r="3.6" fill="${p.skin}"/>`);
     s.push(`<circle cx="32" cy="30" r="20" fill="${p.skin}"/>`);
     if (p.beard) {
@@ -129,14 +142,15 @@
     if (p.gauges) s.push(`<circle cx="12.5" cy="36.5" r="1.9" fill="${p.gauges}"/><circle cx="51.5" cy="36.5" r="1.9" fill="${p.gauges}"/>`);
     if (p.stud) s.push(`<circle cx="51.5" cy="35.5" r=".9" fill="#f2f2f2"/>`);
     if (p.noseRing) s.push(`<circle cx="33.6" cy="36.4" r=".9" fill="none" stroke="#d8c27a" stroke-width=".7"/>`);
+    s.push('</g>');
 
     s.push('</g>');
-    return `<svg viewBox="0 0 64 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${s.join('')}</svg>`;
+    return `<svg viewBox="${VIEWBOX}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${s.join('')}</svg>`;
   }
 
   const CSS = `
-    .walker { position: absolute; left: 0; bottom: 3%; width: 64px; z-index: 3; will-change: transform; }
-    .walker.back { bottom: 15%; width: 52px; z-index: 1; }
+    .walker { position: absolute; left: 0; bottom: 3%; width: 90px; z-index: 3; will-change: transform; }
+    .walker.back { bottom: 15%; width: 72px; z-index: 1; }
     .walker svg { display: block; width: 100%; height: auto; overflow: visible; }
     .walker svg.flip { transform: scaleX(-1); }
     .walker .leg, .walker .arm { transform-box: fill-box; transform-origin: 50% 0; animation: crew-swing .55s ease-in-out infinite alternate; }
@@ -179,11 +193,12 @@
       const W = container.clientWidth;
       walkers.forEach((el, i) => {
         const leftward = i % 3 === 1;
+        const w = el.offsetWidth;
         if (reduce) {
-          el.style.transform = `translateX(${((i + 0.5) / walkers.length) * W - 32}px)`;
+          el.style.transform = `translateX(${((i + 0.5) / walkers.length) * W - w / 2}px)`;
           return;
         }
-        const from = -90, to = W + 30;
+        const from = -w - 10, to = W + 10;
         const speed = 24 + ((i * 7) % 15);                 // px per second
         const duration = ((to - from) / speed) * 1000;
         const frames = [{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }];

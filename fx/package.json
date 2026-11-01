@@ -1,0 +1,19 @@
+{
+  "name": "grouptrips-fx",
+  "private": true,
+  "description": "Animated effects for GroupTrips pages: React Bits components + 3D strawberries, bundled into docs/assets/fx/",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/hawaii-dates.jsx --bundle --minify --format=iife --target=es2020 --jsx=automatic --legal-comments=linked --outfile=../docs/assets/fx/hawaii-dates.js"
+  },
+  "dependencies": {
+    "@gsap/react": "2.1.2",
+    "gsap": "3.15.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

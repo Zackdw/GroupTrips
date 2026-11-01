@@ -6,6 +6,8 @@ Outside tools this repo uses, and where each one plugs in.
 |------|----------|-------------------|
 | [Leaflet](https://github.com/Leaflet/Leaflet) 1.9.4 | Maps on exercise pages ("drop pins where you want to go") | CDN, pinned — see `templates/exercise/index.html` |
 | [SurveyJS](https://github.com/surveyjs/survey-library) 3.2.1 (`survey-core` + `survey-js-ui`) | Forms, rankings, multi-step exercises | CDN, pinned — see `templates/exercise/index.html` |
+| [React Bits](https://github.com/DavidHDev/react-bits) (SplitText, AnimatedContent, ClickSpark, GradientText) | Animated titles, cards that rise in on scroll, tap sparks | Copied into `fx/src/react-bits/`, bundled by `fx/` → `docs/assets/fx/` (see `fx/README.md`). MIT + Commons Clause: use on our site, don't redistribute the components alone |
+| [Three.js](https://github.com/mrdoob/three.js) 0.187.0 | Faint 3D Fruit Gang strawberries drifting behind pages | `fx/src/strawberries.js`, same bundle |
 | Google Sheets + Apps Script | Storing responses from GitHub Pages (Pages has no backend) | `templates/exercise/apps-script/Code.gs` — one Sheet for all trips, one tab per exercise |
 | [Rallly](https://github.com/lukevella/rallly) | Date / availability polls | Hosted at rallly.co, no accounts needed; paste the poll link in the trip README |
 | Messenger polls | Quick single-question votes | Built into the group chat |
