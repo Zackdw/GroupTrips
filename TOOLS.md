@@ -25,6 +25,8 @@ Outside tools this repo uses, and where each one plugs in.
 1. Create a Google Sheet (e.g. "GroupTrips responses").
 2. Extensions → Apps Script → paste `templates/exercise/apps-script/Code.gs` → Save.
 3. Deploy → New deployment → type **Web app** → Execute as **Me**, access **Anyone** → Deploy.
-4. Copy the `/exec` URL into the `ENDPOINT` constant of each exercise page.
+4. Copy the `/exec` URL into the `ENDPOINT` constant of each exercise page. Current endpoint (already in the template):
+   https://script.google.com/macros/s/AKfycbwD94U0vem3i3YxjmKiY22gIBXUHNy30yQ7N1dbH19P2S8FsHgD4VMSnI2ZBSouLTmZ/exec
+5. After editing `Code.gs`, redeploy via Deploy → Manage deployments → ✏️ → New version, which keeps the same URL. "Who has access" must be **Anyone**.
 
 The endpoint URL is public (it's in the page source), so anyone with it could post junk rows. Fine for friends; rotate it by redeploying if it ever matters.
