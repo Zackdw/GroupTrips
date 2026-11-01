@@ -97,8 +97,28 @@
   }
   textarea { min-height: 72px; resize: vertical; }
   .hint { color: var(--muted); font-size: .9rem; margin: 4px 0 12px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
-  .row > div { flex: 1 1 140px; }
+  /* Range picker: From/To buttons open a one-month popover calendar */
+  .range-picker { position: relative; }
+  .range-fields { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; }
+  .field-btn { flex: 1 1 130px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    font: inherit; text-align: left; cursor: pointer; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  .field-btn .lbl { font-size: .78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .field-btn .val { font-weight: 600; }
+  .field-btn .val.empty { color: var(--muted); font-weight: 400; }
+  .field-btn[aria-expanded=true] { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .popover { position: absolute; top: calc(100% + 8px); left: 0; z-index: 10; width: min(340px, 100%);
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+    box-shadow: 0 14px 40px rgba(10, 40, 60, .22); }
+  .pop-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .pop-head span { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600; font-size: 1.05rem; }
+  .pop-nav { font: inherit; font-size: 1.3rem; line-height: 1; width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  .pop-nav:disabled { opacity: .3; cursor: default; }
+  .popover .day { cursor: pointer; }
+  .popover .day.in-range { background: color-mix(in srgb, var(--accent) 22%, var(--card)); border-color: transparent; }
+  .popover .day.edge { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; }
+  .pop-hint { margin: 10px 0 0; font-size: .9rem; color: var(--muted); text-align: center; }
   button.btn {
     font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: pointer;
     border: 1px solid var(--line); background: var(--bg); color: var(--fg);
@@ -209,10 +229,25 @@
   <section class="card">
     <h2>2. Tap the days you're free</h2>
     <p class="hint">Fastest way: <strong>Select all</strong>, then tap off the days you can't do. Or add a range below.</p>
-    <div class="row">
-      <div><label for="from">From</label><input type="date" id="from"></div>
-      <div><label for="to">To</label><input type="date" id="to"></div>
-      <button class="btn" id="add-range" type="button">Add range</button>
+    <div class="range-picker" id="range-picker">
+      <div class="range-fields">
+        <button type="button" class="field-btn" id="from-btn" aria-haspopup="dialog" aria-expanded="false">
+          <span class="lbl">From</span><span class="val empty" id="from-val">Pick a day</span>
+        </button>
+        <button type="button" class="field-btn" id="to-btn" aria-haspopup="dialog" aria-expanded="false">
+          <span class="lbl">To</span><span class="val empty" id="to-val">Pick a day</span>
+        </button>
+        <button class="btn" id="add-range" type="button">Add range</button>
+      </div>
+      <div class="popover" id="range-pop" role="dialog" aria-label="Pick a date range" hidden>
+        <div class="pop-head">
+          <button type="button" class="pop-nav" id="pop-prev" aria-label="Previous month">‹</button>
+          <span id="pop-month"></span>
+          <button type="button" class="pop-nav" id="pop-next" aria-label="Next month">›</button>
+        </div>
+        <div class="grid" id="pop-grid"></div>
+        <p class="pop-hint" id="pop-hint"></p>
+      </div>
     </div>
     <div class="toolbar">
       <button class="btn" id="select-all" type="button">Select all</button>
@@ -331,14 +366,116 @@ function updateCount() {
   $('count').textContent = `${selected.size} day${selected.size === 1 ? '' : 's'} selected`;
 }
 
-$('from').min = $('to').min = WINDOW_START;
-$('from').max = $('to').max = WINDOW_END;
+// ── Range picker ──
+// Tap From (or To) to open a one-month calendar; tap the first day, then the last.
+const months = [...new Set(allDays.map((k) => k.slice(0, 7)))];
+const range = { from: null, to: null, picking: 'from', month: 0, hover: null };
+
+function setField(which) {
+  const key = range[which];
+  const el = $(`${which}-val`);
+  el.textContent = key ? fmt(key, { weekday: 'short', month: 'short', day: 'numeric' }) : 'Pick a day';
+  el.classList.toggle('empty', !key);
+}
+
+function openPicker(which) {
+  range.picking = which === 'to' && range.from ? 'to' : 'from';
+  const focus = range[range.picking] || range.from || allDays[0];
+  range.month = months.indexOf(focus.slice(0, 7));
+  $('range-pop').hidden = false;
+  drawPicker();
+}
+
+function closePicker() {
+  $('range-pop').hidden = true;
+  range.hover = null;
+  $('from-btn').setAttribute('aria-expanded', 'false');
+  $('to-btn').setAttribute('aria-expanded', 'false');
+}
+
+function drawPicker() {
+  $('from-btn').setAttribute('aria-expanded', range.picking === 'from');
+  $('to-btn').setAttribute('aria-expanded', range.picking === 'to');
+  const ym = months[range.month];
+  const [y, m] = ym.split('-').map(Number);
+  const first = Date.UTC(y, m - 1, 1);
+  $('pop-month').textContent = fmt(toKey(first), { month: 'long', year: 'numeric' });
+  $('pop-prev').disabled = range.month === 0;
+  $('pop-next').disabled = range.month === months.length - 1;
+  $('pop-hint').textContent = range.picking === 'from' ? 'Tap your first day' : 'Now tap your last day';
+
+  const grid = $('pop-grid');
+  grid.innerHTML = '';
+  for (const d of 'SMTWTFS') grid.insertAdjacentHTML('beforeend', `<div class="dow">${d}</div>`);
+  for (let i = 0; i < new Date(first).getUTCDay(); i++) grid.insertAdjacentHTML('beforeend', '<div class="day blank"></div>');
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = toKey(Date.UTC(y, m - 1, d));
+    if (!inWindow.has(key)) {
+      grid.insertAdjacentHTML('beforeend', `<div class="day out" aria-hidden="true">${d}</div>`);
+      continue;
+    }
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'day';
+    b.textContent = d;
+    b.dataset.key = key;
+    b.setAttribute('aria-label', fmt(key, { weekday: 'long', month: 'long', day: 'numeric' }));
+    b.onclick = () => pickDay(key);
+    b.onpointerenter = () => {
+      if (range.picking === 'to' && range.hover !== key) { range.hover = key; paintRange(); }
+    };
+    grid.append(b);
+  }
+  paintRange();
+}
+
+// Updates highlight classes in place (no re-render, so a tap in progress isn't lost).
+// While choosing the end, previews the stretch up to the hovered day.
+function paintRange() {
+  const end = range.picking === 'to' && range.hover && range.hover >= range.from ? range.hover : range.to;
+  $('pop-grid').querySelectorAll('button.day').forEach((b) => {
+    const key = b.dataset.key;
+    const edge = key === range.from || key === end;
+    b.classList.toggle('edge', edge);
+    b.classList.toggle('in-range', !edge && !!range.from && !!end && key > range.from && key < end);
+    b.setAttribute('aria-pressed', edge);
+  });
+}
+
+function pickDay(key) {
+  if (range.picking === 'from' || key < range.from) {
+    range.from = key;
+    if (range.to && range.to < key) range.to = null;
+    range.picking = 'to';
+    setField('from');
+    setField('to');
+    drawPicker();
+    return;
+  }
+  range.to = key;
+  setField('to');
+  closePicker();
+}
+
+$('from-btn').onclick = () => ($('range-pop').hidden || range.picking !== 'from' ? openPicker('from') : closePicker());
+$('to-btn').onclick = () => ($('range-pop').hidden || range.picking !== 'to' ? openPicker('to') : closePicker());
+$('pop-prev').onclick = () => { range.month--; drawPicker(); };
+$('pop-next').onclick = () => { range.month++; drawPicker(); };
+document.addEventListener('pointerdown', (e) => {
+  if (!$('range-pop').hidden && !$('range-picker').contains(e.target)) closePicker();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('range-pop').hidden) closePicker(); });
+
 $('add-range').onclick = () => {
-  let a = $('from').value, b = $('to').value;
-  if (!a || !b) { setStatus('Pick both a From and a To date.', true); return; }
-  if (a > b) [a, b] = [b, a];
-  allDays.filter((k) => k >= a && k <= b).forEach((k) => selected.add(k));
+  if (!range.from || !range.to) {
+    setStatus('Pick both a From and a To day first.', true);
+    openPicker(range.from ? 'to' : 'from');
+    return;
+  }
+  allDays.filter((k) => k >= range.from && k <= range.to).forEach((k) => selected.add(k));
   setStatus('');
+  closePicker();
   drawMine();
 };
 $('select-all').onclick = () => { allDays.forEach((k) => selected.add(k)); drawMine(); };
