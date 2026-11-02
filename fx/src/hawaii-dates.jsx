@@ -1,4 +1,4 @@
-// Effects for docs/2027-04-hawaii/dates/. Loaded after the page's own script.
+// Effects for the Hawaii pages (docs/2027-04-hawaii/*/). Loaded after the page's own script.
 import AnimatedContent from './react-bits/AnimatedContent.jsx';
 import ClickSpark from './react-bits/ClickSpark.jsx';
 import GradientText from './react-bits/GradientText.jsx';
@@ -20,7 +20,7 @@ replaceWith($('.kicker'), (
 ));
 replaceWith($('#hero-title'), (
   <SplitText
-    text={'Hawaii 2027: when can you go?'}
+    text={$('#hero-title').textContent}
     tag="h1"
     className="hero-title"
     textAlign="left"

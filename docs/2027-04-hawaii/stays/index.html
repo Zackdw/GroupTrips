@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oahu Stays</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E🍓%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Places on Oahu open Apr 19 – May 15, 2027. Vote and comment.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="../../assets/fx/hawaii-dates.css">
+<style>
+  :root {
+    --bg: #fdf5e6; --card: #fffdf8; --fg: #1d2b36; --muted: #5a6872; --line: #eadfca;
+    --accent: #0a8a8f; --accent-fg: #ffffff; --coral: #cf4b3e; --coral-fg: #ffffff; --warn: #a35a00;
+    /* beach scene: sunny afternoon */
+    --sky-1: #5ec4ee; --sky-2: #a9e6fb; --sky-3: #e3f9ff;
+    --sun: #ffd84d; --sun-glow: rgba(255, 216, 77, .45); --sun-top: 14%; --sun-right: 12%; --sun-size: 62px;
+    --ocean-1: #2bb7cc; --ocean-2: #1689a6; --sand-1: #f6dfae; --sand-2: #ecc98a;
+    --cloud: rgba(255, 255, 255, .92); --hero-fg: #0b3a4c; --hero-shadow: rgba(255, 255, 255, .6);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101b27; --card: #172433; --fg: #eef3f6; --muted: #9db0bd; --line: #2a3b4d;
+      --accent: #41c7c7; --accent-fg: #062226; --coral: #ff8a7a; --coral-fg: #2a0f0b; --warn: #f0b45a;
+      /* beach scene: sunset */
+      --sky-1: #241f4f; --sky-2: #8d4a7a; --sky-3: #f39a63;
+      --sun: #ffb36b; --sun-glow: rgba(255, 150, 90, .55); --sun-top: 38%; --sun-right: 24%; --sun-size: 96px;
+      --ocean-1: #2a5a7a; --ocean-2: #143650; --sand-1: #c9a576; --sand-2: #a8875d;
+      --cloud: rgba(255, 200, 190, .45); --hero-fg: #fff7ef; --hero-shadow: rgba(30, 10, 40, .55);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { position: relative; z-index: 5; max-width: 760px; margin: -20px auto 0; padding: 0 16px 48px; }
+  h1, h2, h3, button.primary, .tab { font-family: 'Fredoka', system-ui, sans-serif; }
+  h1 { margin: 0; font-size: clamp(1.8rem, 6vw, 2.6rem); line-height: 1.1; font-weight: 700; }
+  h2 { margin: 0 0 12px; font-size: 1.25rem; font-weight: 600; }
+  h3 { margin: 0; font-size: 1.1rem; font-weight: 600; line-height: 1.25; }
+  .lede { margin: 0; }
+  footer { text-align: center; color: var(--muted); font-size: .9rem; padding: 8px 16px 40px; }
+
+  /* ── Beach hero (same scene as dates/) ── */
+  .hero { position: relative; z-index: 1; height: clamp(320px, 48vh, 460px); overflow: hidden; color: var(--hero-fg); }
+  h1.hero-title, #hero-title { padding-bottom: .12em; }
+  .berries { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .2; }
+  .berries canvas { width: 100%; height: 100%; display: block; }
+  @media (prefers-color-scheme: dark) { .berries { opacity: .28; } }
+  footer { position: relative; z-index: 2; }
+  .hero > * { position: absolute; }
+  .sky { inset: 0; background: linear-gradient(var(--sky-1), var(--sky-2) 35%, var(--sky-3) 50%); }
+  .sun { top: var(--sun-top); right: var(--sun-right); width: var(--sun-size); height: var(--sun-size);
+    border-radius: 50%; background: var(--sun); box-shadow: 0 0 40px 18px var(--sun-glow); }
+  .cloud { width: 110px; left: 0; opacity: 1; animation: drift linear infinite; }
+  .cloud path { fill: var(--cloud); }
+  .cloud.c1 { top: 9%; animation-duration: 95s; animation-delay: -30s; }
+  .cloud.c2 { top: 24%; width: 80px; animation-duration: 130s; animation-delay: -85s; }
+  @keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(110vw); } }
+  .ocean { left: 0; right: 0; top: 50%; bottom: 18%; background: linear-gradient(var(--ocean-1), var(--ocean-2)); }
+  .ocean::before, .ocean::after { content: ''; position: absolute; left: 0; right: 0; height: 12px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='12'%3E%3Cpath d='M0 6 Q15 0 30 6 T60 6 T90 6 T120 6' stroke='white' stroke-opacity='.35' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") repeat-x;
+    animation: waves 9s linear infinite; }
+  .ocean::before { top: 18%; }
+  .ocean::after { top: 52%; animation-direction: reverse; animation-duration: 13s; }
+  @keyframes waves { from { background-position-x: 0; } to { background-position-x: 120px; } }
+  .sand { left: 0; right: 0; top: 70%; bottom: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,.06) 1px, transparent 1.5px) 0 0 / 14px 14px,
+      radial-gradient(circle at 70% 80%, rgba(255,255,255,.25) 1px, transparent 1.5px) 0 0 / 18px 18px,
+      linear-gradient(var(--sand-1), var(--sand-2)); }
+  .sand::before { content: ''; position: absolute; left: 0; right: 0; top: -10px; height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='16'%3E%3Cpath d='M0 8 Q15 0 30 8 T60 8 T90 8 T120 8 V16 H0Z' fill='white' fill-opacity='.85'/%3E%3C/svg%3E") repeat-x;
+    animation: surf 7s ease-in-out infinite alternate; }
+  @keyframes surf { from { transform: translateY(-3px); background-position-x: 0; } to { transform: translateY(4px); background-position-x: 60px; } }
+  .walkers { inset: 0; }
+  .hero-text { left: 0; right: 0; top: 0; z-index: 4; max-width: 760px; margin: 0 auto; padding: 28px 16px 0;
+    text-shadow: 0 1px 12px var(--hero-shadow); }
+  .kicker { margin: 0 0 4px; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600; font-size: 1.05rem; }
+  @media (prefers-reduced-motion: reduce) { .hero *, .hero *::before, .hero *::after { animation: none !important; } }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 16px; margin-bottom: 16px;
+    box-shadow: 0 6px 20px rgba(20, 60, 80, .08); }
+  .banner { border-color: var(--warn); color: var(--warn); font-size: .92rem; }
+  label { display: block; font-weight: 600; margin-bottom: 6px; }
+  input[type=text], input[type=url], input[type=number], textarea, select {
+    width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  }
+  textarea { min-height: 64px; resize: vertical; }
+  .hint { color: var(--muted); font-size: .9rem; margin: 4px 0 0; }
+  a { color: var(--accent); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  }
+  .btn.go { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  button.primary { background: var(--coral); color: var(--coral-fg); border-color: var(--coral); width: 100%; padding: 12px;
+    font-size: 1.1rem; border-radius: 999px; box-shadow: 0 6px 18px rgba(207, 75, 62, .3); }
+  button:disabled { opacity: .6; }
+  button.link { font: inherit; font-size: .85rem; background: none; border: 0; padding: 0; color: var(--muted);
+    text-decoration: underline; cursor: pointer; }
+
+  /* ── Tabs + toolbar ── */
+  .tabs { display: flex; gap: 6px; margin: 4px 0 12px; position: sticky; top: 0; z-index: 6;
+    padding: 8px 0; background: var(--bg); }
+  .tab { flex: 1; font-size: 1.05rem; font-weight: 600; padding: 10px 8px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+  .tab[aria-selected=true] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .tab .n { opacity: .75; font-weight: 500; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
+  .toolbar select { width: auto; flex: 0 1 auto; padding: 8px 10px; }
+  .toolbar .grow { flex: 1; }
+
+  /* ── Listing cards ── */
+  .stays { display: grid; gap: 14px; }
+  .stay { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+    box-shadow: 0 6px 20px rgba(20, 60, 80, .08); }
+  .stay.fav { border-color: var(--coral); }
+  /* Photo carousel: swipe on phones (scroll-snap), arrows on bigger screens */
+  .carousel { position: relative; margin: -16px -16px 14px; border-radius: 15px 15px 0 0; overflow: hidden; background: var(--line); }
+  .slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; aspect-ratio: 3 / 2; }
+  .slides::-webkit-scrollbar { display: none; }
+  .slides img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: start; display: block; }
+  .car-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%;
+    border: 0; background: rgba(255, 255, 255, .88); color: #1d2b36; font-size: 1.3rem; line-height: 1; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+  .car-nav.prev { left: 10px; } .car-nav.next { right: 10px; }
+  .car-nav:disabled { opacity: 0; pointer-events: none; }
+  @media (hover: none) { .car-nav { display: none; } }
+  .car-count { position: absolute; right: 10px; bottom: 10px; font-size: .78rem; font-weight: 600; color: #fff;
+    background: rgba(0, 0, 0, .55); border-radius: 999px; padding: 2px 9px; }
+  .car-dots { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+  .car-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+  .car-dots i.on { background: #fff; }
+  .stay-head { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+  .area { flex: none; font-size: .78rem; font-weight: 600; color: var(--accent); white-space: nowrap;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 999px; padding: 2px 9px; }
+  .price { margin: 8px 0 2px; font-size: 1.15rem; font-weight: 700; }
+  .price small { font-size: .85rem; font-weight: 500; color: var(--muted); }
+  .facts { color: var(--muted); font-size: .9rem; }
+  .note { margin: 8px 0 0; font-size: .92rem; }
+  .note .who { color: var(--muted); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .votes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .vote { font: inherit; font-size: .92rem; cursor: pointer; border-radius: 999px; padding: 6px 12px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  .vote[aria-pressed=true] { border-color: var(--coral); background: color-mix(in srgb, var(--coral) 16%, var(--card)); font-weight: 700; }
+  .voters { margin: 6px 0 0; font-size: .85rem; color: var(--muted); }
+  details.comments { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+  details.comments summary { cursor: pointer; font-weight: 600; font-size: .92rem; color: var(--muted); padding: 4px 0; }
+  .comment { margin: 8px 0; font-size: .95rem; }
+  .comment b { margin-right: 6px; }
+  .comment time { color: var(--muted); font-size: .78rem; margin-left: 6px; }
+  .comment-form { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; }
+  .comment-form textarea { min-height: 44px; }
+  .empty { text-align: center; color: var(--muted); padding: 24px 12px; }
+  .hidden-list { margin-top: 18px; color: var(--muted); font-size: .92rem; }
+  .hidden-list summary { cursor: pointer; }
+  .hidden-list li { margin: 6px 0; }
+
+  .grid2 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .field { margin-bottom: 12px; }
+  .optional { font-weight: 400; color: var(--muted); }
+  #toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 20; max-width: calc(100% - 32px);
+    background: var(--fg); color: var(--bg); font-weight: 600; padding: 10px 16px; border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
+  #toast.err { background: var(--warn); color: #fff; }
+</style>
+</head>
+<body>
+<div class="berries" id="strawberries" aria-hidden="true"></div>
+<header class="hero">
+  <div class="sky"></div>
+  <div class="sun"></div>
+  <svg class="cloud c1" viewBox="0 0 64 32" aria-hidden="true"><path d="M10 30 Q0 30 2 22 Q4 14 14 16 Q16 4 30 6 Q40 0 48 10 Q60 8 60 20 Q66 30 54 30 Z"/></svg>
+  <svg class="cloud c2" viewBox="0 0 64 32" aria-hidden="true"><path d="M10 30 Q0 30 2 22 Q4 14 14 16 Q16 4 30 6 Q40 0 48 10 Q60 8 60 20 Q66 30 54 30 Z"/></svg>
+  <div class="ocean"></div>
+  <div class="sand"></div>
+  <div class="walkers" id="walkers"></div>
+  <div class="hero-text">
+    <p class="kicker">Aloha, Fruit Gang 🍓</p>
+    <h1 id="hero-title">Oahu 2027: where should we stay?</h1>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>The plan 🌴</h2>
+    <p class="lede" id="plan"></p>
+    <p class="hint">Prices are the Airbnb total for the whole stay as of <span id="checked"></span>, before taxes. Tap through to see today's price.</p>
+  </section>
+
+  <div class="card banner" id="preview-banner" hidden>
+    Preview mode: no response endpoint set, so votes and comments are saved only in this browser.
+  </div>
+
+  <section class="card">
+    <label for="name">Your first name</label>
+    <input type="text" id="name" autocomplete="given-name" maxlength="40">
+    <p class="hint">Shown next to your votes and comments.</p>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Kind of stay">
+    <button class="tab" role="tab" id="tab-airbnb" data-tab="airbnb" aria-controls="panel">Airbnb <span class="n"></span></button>
+    <button class="tab" role="tab" id="tab-other" data-tab="other" aria-controls="panel">Other stays <span class="n"></span></button>
+  </div>
+
+  <div id="panel" role="tabpanel">
+    <div class="toolbar">
+      <select id="sort" aria-label="Sort by">
+        <option value="votes">Group favorites first</option>
+        <option value="price">Cheapest first</option>
+        <option value="bedrooms">Most bedrooms first</option>
+        <option value="new">Newest first</option>
+      </select>
+      <span class="grow"></span>
+      <span id="search-links"></span>
+    </div>
+    <div class="stays" id="stays"></div>
+    <details class="hidden-list" id="hidden-wrap" hidden>
+      <summary id="hidden-summary"></summary>
+      <ul id="hidden-list"></ul>
+    </details>
+  </div>
+
+  <section class="card" style="margin-top:24px" id="add">
+    <h2>Found a place? Add it</h2>
+    <p class="hint" style="margin-bottom:12px">Airbnb links go on the Airbnb tab, anything else (VRBO, Furnished Finder, a condo-hotel) on Other stays. Make sure it's open the whole time.</p>
+    <div class="field">
+      <label for="add-url">Link</label>
+      <input type="url" id="add-url" placeholder="https://…" inputmode="url">
+    </div>
+    <div class="field">
+      <label for="add-title">Name of the place</label>
+      <input type="text" id="add-title" maxlength="90" placeholder="e.g. Kailua beach house with yard">
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="add-price">Total for the stay <span class="optional">($)</span></label>
+        <input type="number" id="add-price" min="0" step="1" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="add-bedrooms">Bedrooms</label>
+        <input type="number" id="add-bedrooms" min="0" step="1" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="add-area">Area <span class="optional">(optional)</span></label>
+        <input type="text" id="add-area" maxlength="30" placeholder="e.g. Kailua">
+      </div>
+    </div>
+    <div class="field">
+      <label for="add-photos">Photo links <span class="optional">(optional, one per line)</span></label>
+      <textarea id="add-photos" maxlength="3000" placeholder="Long-press a photo on the listing → Copy image address"></textarea>
+    </div>
+    <div class="field">
+      <label for="add-notes">Why it's good <span class="optional">(optional)</span></label>
+      <textarea id="add-notes" maxlength="400"></textarea>
+    </div>
+    <button class="btn primary" id="add-btn" type="button">Add this place</button>
+  </section>
+</main>
+<footer>Mahalo! 🤙 Questions? Ask in the group chat.</footer>
+<div id="toast" role="status" hidden></div>
+
+<script src="../../assets/crew.js"></script>
+<script>
+// ── Config ──────────────────────────────────────────────────────────────
+const TRIP = '2027-04-hawaii';
+const EXERCISE = 'stays';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwD94U0vem3i3YxjmKiY22gIBXUHNy30yQ7N1dbH19P2S8FsHgD4VMSnI2ZBSouLTmZ/exec';                 // Apps Script /exec URL (see TOOLS.md)
+const CHECK_IN = '2027-04-19';
+const CHECK_OUT = '2027-05-15';
+const CREW_SIZE = 6;
+const CHECKED = '2026-11-02';        // when SEED prices were pulled from Airbnb search
+
+// First 8 photos from each listing page, as paths under a0.muscache.com/im/pictures/ (hotlinked, not copied).
+const PHOTOS = {
+  'ab-754672037998729991': ['miso/Hosting-754672037998729991/original/359422b9-f6b1-4072-b18a-744bbd74e151.jpeg', 'miso/Hosting-754672037998729991/original/415688a5-c339-4e93-b2f9-bb0a61a01b8b.jpeg', 'miso/Hosting-754672037998729991/original/d3af44e2-75bc-4ccf-ae7f-7a4cbfa5d6cb.jpeg', 'miso/Hosting-754672037998729991/original/ae3aab76-c61d-48df-b4db-a43b4bd9daf2.jpeg', 'miso/Hosting-754672037998729991/original/bd774609-bc6d-443c-ba01-d565bc9d36c5.jpeg', 'miso/Hosting-754672037998729991/original/df0089db-2735-4c6f-a30f-53eb156ed8fe.jpeg', 'miso/Hosting-754672037998729991/original/b84217a1-4ff8-4576-ba14-33b887e9554b.jpeg', 'miso/Hosting-754672037998729991/original/14240ab5-e62c-4519-8170-19ff8f34cd9f.jpeg'],
+  'ab-1298284686338173041': ['miso/Hosting-1298284686338173041/original/d4f8b1f2-8407-4235-af5c-249d3eaf550c.jpeg', 'miso/Hosting-1298284686338173041/original/2af16c39-a35d-4441-aa6d-22389c3d8a57.jpeg', 'miso/Hosting-1298284686338173041/original/c57254f3-361a-4cec-bd65-f241f167d950.jpeg', 'miso/Hosting-1298284686338173041/original/445a0e31-f3eb-4969-b518-3bb2658961e1.jpeg', 'miso/Hosting-1298284686338173041/original/937f09a2-c050-402e-8d80-3874e8749845.jpeg', 'miso/Hosting-1298284686338173041/original/8ab5bcc1-6161-4a68-afe6-63e566e2b3c7.jpeg', 'miso/Hosting-1298284686338173041/original/e33b2815-d1f3-457e-aa05-5cb55bc0c9c6.jpeg', 'miso/Hosting-1298284686338173041/original/d933396b-8ee9-43ff-9aed-c71ee895a9fa.jpeg'],
+  'ab-1019034699346706944': ['prohost-api/Hosting-1019034699346706944/original/ad0f6d43-4f36-45c2-ab54-a776d5e102c3.jpeg', 'prohost-api/Hosting-1019034699346706944/original/8539068a-2dd3-4d33-aeaa-ba8812bd4f0b.jpeg', 'prohost-api/Hosting-1019034699346706944/original/5e9c38a6-9506-408d-991c-78cfe2320404.jpeg', 'hosting/Hosting-1019034699346706944/original/5c7d59ca-cc35-48af-99ff-21ba08b841f1.jpeg', 'hosting/Hosting-1019034699346706944/original/828d22bd-27f3-48a9-a70a-933dd511a15d.jpeg', 'hosting/Hosting-1019034699346706944/original/c4b7aff2-a816-4685-abe0-cfed5c186a36.jpeg', 'hosting/Hosting-1019034699346706944/original/c4a70547-a07a-4394-8074-1b3b3748ba2f.jpeg', 'hosting/Hosting-1019034699346706944/original/b6d69e60-3bf3-41dc-beed-6b3d6b1a952b.jpeg'],
+  'ab-48742967': ['hosting/Hosting-48742967/original/099d293f-0ba0-4276-90c0-e0c8b86351b5.jpeg', 'hosting/Hosting-48742967/original/a677fbf2-5876-4cb7-95e8-60125f2c2db2.jpeg', 'aa6c12ab-cfa6-46f7-a4df-fa5a03486457.jpg', '3ab38b94-77ac-4634-aa1c-2778954b1460.jpg', '03f872f2-87e9-49c9-9231-0c34236f3e8c.jpg', '348db3e8-4239-4c50-94fe-0bf881503c34.jpg', 'b525ac6c-670f-41d5-a9ad-aa273f7f155e.jpg', '6f75b1b9-137c-4c88-90f5-5fe030e8f52b.jpg'],
+  'ab-41911945': ['16f995cc-79f6-4a25-9a6b-89eb7e5da3b9.jpg', '8f06e93a-bf8b-4c7f-a7ea-0d929c099f34.jpg', '4122bd9d-4598-4bc3-a9c0-7bc1feb19eea.jpg', 'ff735f86-7d41-493a-9cb0-4e9bb69aa7ba.jpg', 'hosting/Hosting-41911945/original/8117daf7-6ee1-4ce1-9e77-893dd4911356.jpeg', 'ad27500f-124c-4d84-945f-8dd389f95ee3.jpg', '6acc6ee1-fea7-4b3a-9189-8ad31a51c350.jpg', '1bfcdafa-facd-4d99-86c7-5d3be5fc11d4.jpg'],
+  'ab-1676350749541995785': ['hosting/Hosting-1676350749541995785/original/9882ab69-f924-42f0-8e38-b6ac750dd409.jpeg', 'hosting/Hosting-1676350749541995785/original/1c3de32b-10f9-45d8-aea3-48d665b468c3.jpeg', 'hosting/Hosting-1676350749541995785/original/f6ed697b-45f7-401a-9ada-056e80bc96bd.jpeg', 'hosting/Hosting-1676350749541995785/original/6f8451aa-dfec-414a-b7c4-1fc9deac8324.jpeg', 'hosting/Hosting-1676350749541995785/original/d03d896a-9ed4-4bd9-bf75-1a3e1593829a.jpeg', 'hosting/Hosting-1676350749541995785/original/27dcc70e-3f53-42f3-a70a-d7a8817b92c4.jpeg', 'hosting/Hosting-1676350749541995785/original/32c06e62-800b-4d5e-be7c-27b588dee38e.jpeg', 'hosting/Hosting-1676350749541995785/original/2698b943-e8a5-4670-befb-6fd91b945f74.jpeg'],
+  'ab-1715598233490728356': ['hosting/Hosting-1715598233490728356/original/9bc0e99b-1cbf-498d-a518-25527f927768.jpeg', 'hosting/Hosting-1715598233490728356/original/61e30204-e099-42c0-bb5b-d2e39d77dea4.jpeg', 'hosting/Hosting-1715598233490728356/original/61ebdec1-5140-46e4-9dfc-cd3038e486e6.jpeg', 'hosting/Hosting-1715598233490728356/original/3210b58f-6856-4daa-8690-140bf5a446b5.jpeg', 'hosting/Hosting-1715598233490728356/original/b8c06a91-0f1c-4ece-ad98-b15eb41c1556.jpeg', 'hosting/Hosting-1715598233490728356/original/45601096-0dcb-437f-be19-10c11bed557d.jpeg', 'hosting/Hosting-1715598233490728356/original/5b89fdeb-b156-4463-b0f7-cd6cf6991aab.jpeg', 'hosting/Hosting-1715598233490728356/original/3a856b34-8cf9-49d0-bb1b-dd1a73c0f237.jpeg'],
+  'ab-46024687': ['96c8868e-4962-45b0-9030-94b27a003a6c.jpg', 'miso/Hosting-46024687/original/5a2d67d0-cbfd-4a8d-a04c-6da7a4c097b2.jpeg', 'miso/Hosting-46024687/original/f0fa66de-7f98-4ab2-98da-2e8fab38dc4d.jpeg', 'hosting/Hosting-46024687/original/bedd41cf-81a0-4639-81e7-5e3075184f50.jpeg', 'miso/Hosting-46024687/original/b9adbe42-8216-4d2e-a43d-b92889dbab1e.jpeg', 'miso/Hosting-46024687/original/12ad2502-8c05-4680-af4d-b0d445fd3acf.jpeg', 'miso/Hosting-46024687/original/481dae2b-9ce4-4b42-a8b4-f310c4413c5a.jpeg', 'miso/Hosting-46024687/original/0bab52aa-e83e-482b-b508-cbab507b0266.jpeg'],
+  'ab-1808462838271539676': ['hosting/Hosting-1350997391993110750/original/a2f106ad-4344-4fe4-88ba-c2bc73e559a6.jpeg', 'hosting/Hosting-1350997391993110750/original/8c88894c-3092-406e-b62a-db1280e09f4e.jpeg', 'hosting/Hosting-1350997391993110750/original/7e10b59f-7d04-425f-880e-48153c7bdaa3.jpeg', 'hosting/Hosting-1350997391993110750/original/968d6581-4211-4887-9e94-fb6396223259.jpeg', 'hosting/Hosting-1350997391993110750/original/3c3b35fe-0fa9-4223-a1ba-1031b92de6df.jpeg', 'hosting/Hosting-1350997391993110750/original/0f885e73-e32f-422c-8ab8-2b7ae02fd254.jpeg', 'hosting/Hosting-1350997391993110750/original/a5dc2cf1-fc05-4706-a5b1-c87920816246.jpeg', 'hosting/Hosting-1350997391993110750/original/3d44ed2d-24b6-4d16-b9ec-3fbf5f9ecfdc.jpeg'],
+  'ab-1042955878509546420': ['d011cb74-0169-492e-94c2-901661310c3e.jpg', '1baaadb5-9370-4769-8343-0f7eb676cf35.jpg', 'miso/Hosting-1042955878509546420/original/9216adf3-1230-4135-aa00-233671cc6a61.jpeg', 'miso/Hosting-1042955878509546420/original/556476e8-bad2-4d7c-97a9-4c837a7b4864.jpeg', 'miso/Hosting-1042955878509546420/original/3a8501de-28bf-4798-b4ad-18946fa62534.jpeg', 'miso/Hosting-1042955878509546420/original/51a3a225-cd75-46ee-83cc-0bef406dc389.jpeg', 'miso/Hosting-1042955878509546420/original/6c504e64-8645-46e6-b520-ed0f4544f872.jpeg', 'miso/Hosting-1042955878509546420/original/fc4bb7a8-407e-4516-924f-ec569b2904ad.jpeg'],
+  'ab-629988964322494103': ['miso/Hosting-629988964322494103/original/e3544272-5364-4245-930d-97f36bcbf6bb.jpeg', 'miso/Hosting-629988964322494103/original/701e0938-c003-47cd-80fa-5aec0d6edaba.jpeg', 'miso/Hosting-629988964322494103/original/bab82154-f909-4029-95bd-a220ccfaf0af.jpeg', 'miso/Hosting-629988964322494103/original/b0d85e66-e0ed-4c73-b085-48f2030a9950.jpeg', 'miso/Hosting-629988964322494103/original/7c960205-5bc3-4a36-8dbc-5a3c0a0faa07.jpeg', 'miso/Hosting-629988964322494103/original/b4b341d9-6f71-4905-9897-984738e517d8.jpeg', 'miso/Hosting-629988964322494103/original/78923299-42a7-4c03-b030-2eb5ede48634.jpeg', 'miso/Hosting-629988964322494103/original/35b14f34-8517-4864-8103-4290a328c4f8.jpeg'],
+  'ab-30931993': ['miso/Hosting-30931993/original/5001586f-1943-4c99-929d-fc14427bdabc.jpeg', 'hosting/Hosting-30931993/original/30088603-4586-4937-8880-9852f366c0c4.jpeg', 'miso/Hosting-30931993/original/173bb405-2e8a-454b-983e-a3c82ee4ae4a.jpeg', '360fec5b-1514-466e-a1fb-472f8fed8dff.jpg', 'hosting/Hosting-30931993/original/42630605-b555-4491-a6ab-d0793d243871.jpeg', '49c13c90-19bc-4d11-9025-f2e97964e549.jpg', 'e9e270a8-a155-44d9-bca0-5aa5796d21f3.jpg', '25d5168e-8163-4a08-b65d-d558d34a925f.jpg'],
+  'ab-947825154780065214': ['miso/Hosting-947825154780065214/original/73c98185-82a9-4882-bf61-1ae8e175911d.jpeg', 'miso/Hosting-947825154780065214/original/20cb7d69-574d-44ee-9ba6-9b47735a0cc5.jpeg', 'miso/Hosting-947825154780065214/original/2fabd77b-eaae-4a6b-9d4f-28f2fdea244b.jpeg', 'miso/Hosting-947825154780065214/original/032cff46-6fe9-4b48-8d71-becc5ff7de37.jpeg', 'miso/Hosting-947825154780065214/original/f2bc5e01-a642-4321-a020-63eb1d9e6a84.jpeg', 'miso/Hosting-947825154780065214/original/d152ab46-a911-4f67-b755-fa734af595d6.jpeg', 'miso/Hosting-947825154780065214/original/d65b52f2-9f5c-45ea-b7d6-a941a1070fb9.jpeg', 'miso/Hosting-947825154780065214/original/a15c9b0a-c566-4b37-bef5-f814cab34ab0.jpeg'],
+  'ab-1743109422644480252': ['hosting/Hosting-1743109422644480252/original/a0e961e4-991c-4664-ab37-29d561814cd7.jpeg', 'hosting/Hosting-1743109422644480252/original/8324f5bc-4741-43fa-8363-180eb82e3bc9.jpeg', 'hosting/Hosting-1743109422644480252/original/8a6d8c14-9472-4d87-ad4f-e8c89de9ad2d.jpeg', 'hosting/Hosting-1743109422644480252/original/beff689d-e88f-43b0-bc46-29b5d319e733.jpeg', 'hosting/Hosting-1743109422644480252/original/6827dec6-cdde-4007-973f-14a5e5ad538f.jpeg', 'hosting/Hosting-1743109422644480252/original/61f1c1fa-62ad-4ec4-a4a9-30fe2ea012da.jpeg', 'hosting/Hosting-1743109422644480252/original/0d6350c9-7b33-4f90-a841-3653e97ea227.jpeg', 'hosting/Hosting-1743109422644480252/original/8e6ade99-fc77-4ab3-9dda-1f8f94d58906.jpeg'],
+  'ab-989827168365584053': ['prohost-api/Hosting-989827168365584053/original/330b78a4-870b-4416-a686-9f8a6a26d4f4.jpeg', 'prohost-api/Hosting-989827168365584053/original/c6fd8c9a-03b0-4fc2-b59a-26778a73b033.jpeg', 'prohost-api/Hosting-989827168365584053/original/99541073-7b2b-4fa6-85ca-8fc2fe3eb961.jpeg', 'prohost-api/Hosting-989827168365584053/original/2f6e54b6-ce44-47e2-887f-c22da132fc8f.jpeg', 'prohost-api/Hosting-989827168365584053/original/ff086e29-6172-4af8-9db6-5e76aabaeede.jpeg', 'prohost-api/Hosting-989827168365584053/original/bb8df982-547c-4e35-a9df-03761bcf2a71.jpeg', 'prohost-api/Hosting-989827168365584053/original/d20b438b-1318-464d-96ce-07fd870ae0da.jpeg', 'prohost-api/Hosting-989827168365584053/original/28f73253-396d-4ee1-ab6a-f9e0e3ae53e1.jpeg'],
+  'ab-1526343579246913701': ['hosting/Hosting-1526343579246913701/original/2f605896-e6a8-4154-ac90-d542d74c4d17.jpeg', 'hosting/Hosting-1526343579246913701/original/249b34a1-d2c4-4df1-804d-5fa3afc56a08.jpeg', 'hosting/Hosting-1526343579246913701/original/c64077f8-bfd3-47e3-a455-c08ea100c854.jpeg', 'hosting/Hosting-1526343579246913701/original/aa0c44a6-c3bb-4273-9381-3ef3b04c3750.jpeg', 'hosting/Hosting-1526343579246913701/original/a4118023-6f0d-49b5-bffa-288b9c2f4968.jpeg', 'hosting/Hosting-1526343579246913701/original/d685fb51-caba-4ce2-bf6c-f714861bb1ea.jpeg', 'hosting/Hosting-1526343579246913701/original/2046ecf5-3be7-45ad-8442-ac55415a567e.jpeg', 'hosting/Hosting-1526343579246913701/original/61f1f872-e2ed-49c8-a29d-589db098d1dc.jpeg'],
+  'ab-17992757': ['07f4708d-6b9c-43b5-862f-9147390902ca.jpg', '98adabce-721a-43bd-bc15-bb840e814194.jpg', 'abd3645e-a430-4f0d-9130-bf53b36447a9.jpg', '04310ea8-9246-44bb-9d52-ec2ef7ba8ea8.jpg', 'd46e37b1-2df6-46dd-bbaf-efd0778a9ad2.jpg', 'ed1d3b9a-4468-49b8-bea1-ea33c82cbb00.jpg', 'a45366cf-9793-4422-a524-91977835d8e6.jpg', 'c3600f64-8083-49c9-8f15-4eecf8020e8a.jpg'],
+  'ab-940143662986853498': ['miso/Hosting-940143662986853498/original/2cd6d426-b753-48f8-987e-1e61dc0c2e65.jpeg', 'miso/Hosting-940143662986853498/original/eb09f949-6a5f-4201-af0e-b972bbbbb0e1.jpeg', 'miso/Hosting-940143662986853498/original/0f34beb2-946a-4ca2-8d6e-bd592f0ee52a.jpeg', 'miso/Hosting-940143662986853498/original/db9c5a76-3bcf-4641-8df5-1813b91b0032.jpeg', 'miso/Hosting-940143662986853498/original/e356d4c1-24fe-473f-aa68-af1a72ebdbf8.jpeg', 'miso/Hosting-940143662986853498/original/52c07403-a696-42f5-af05-0849eaa26764.jpeg', 'miso/Hosting-940143662986853498/original/4dce3bf4-b101-44c3-a718-baf1dccd341a.jpeg', 'miso/Hosting-940143662986853498/original/21327942-ccc9-43a0-815c-ba2ab24c45d1.jpeg'],
+};
+
+// Airbnb search for Oahu, these exact dates, 6 guests. Prices = total for the stay.
+// Ids are prefixed so the Sheet keeps them as text (long numbers lose digits).
+const SEED = [
+  { id: 'ab-754672037998729991', title: 'Modern Ko Olina townhouse with resort access', area: 'Ko Olina', price: 7217, bedrooms: 3, beds: 3, rating: '4.77 (31)' },
+  { id: 'ab-1298284686338173041', title: 'Renovated Ko Olina villa with golf cart', area: 'Ko Olina', price: 11797, bedrooms: 3, beds: 4, rating: '4.96 (23)' },
+  { id: 'ab-1019034699346706944', title: 'Mountain views and a patio near Mākaha', area: 'Mākaha', price: 11568, bedrooms: 3, beds: 6, rating: '4.91 (58)' },
+  { id: 'ab-48742967', title: 'Renovated condo near Waikīkī Beach', area: 'Waikīkī', price: 4880, bedrooms: 2, beds: 3, rating: '4.52 (142)' },
+  { id: 'ab-41911945', title: 'Beachfront with ocean views at Ko Olina', area: 'Ko Olina', price: 24509, bedrooms: 3, beds: 4, rating: '4.91 (78)' },
+  { id: 'ab-1676350749541995785', title: 'Ocean-view duplex near North Shore surf', area: 'Hauʻula', price: 13562, bedrooms: 3, beds: 4, rating: 'New' },
+  { id: 'ab-1715598233490728356', title: 'Ocean and mountain views in Mākaha', area: 'Mākaha', price: 18840, bedrooms: 3, beds: 4 },
+  { id: 'ab-46024687', title: 'Beachfront penthouse with ocean and mountain views', area: 'Hauʻula', price: 16050, bedrooms: 3, beds: 4, rating: '4.76 (159)' },
+  { id: 'ab-1808462838271539676', title: 'Free parking and laundry near Honolulu', area: 'Honolulu', price: 9240, bedrooms: 4, rating: 'New' },
+  { id: 'ab-1042955878509546420', title: 'Renovated beach house in surf-town Haleʻiwa', area: 'North Shore', price: 16028, bedrooms: 3, beds: 3, rating: '4.98 (61)' },
+  { id: 'ab-629988964322494103', title: 'Kahala home with a pool near the beach', area: 'Kahala', price: 8828, bedrooms: 3, beds: 4, rating: '4.2 (5)' },
+  { id: 'ab-30931993', title: 'Walk to Turtle Bay Resort and beach', area: 'North Shore', price: 11926, bedrooms: 2, beds: 3, rating: '4.99 (196)' },
+  { id: 'ab-947825154780065214', title: 'Resort villa with pool near Ko Olina Lagoons', area: 'Ko Olina', price: 24189, bedrooms: 3, beds: 4, rating: '5.0 (46)' },
+  { id: 'ab-1743109422644480252', title: 'Harbor views from the 29th floor', area: 'Honolulu', price: 8646, bedrooms: 1, beds: 6, rating: '5.0 (4)' },
+  { id: 'ab-989827168365584053', title: 'Ko Olina villa with pool and lagoons', area: 'Ko Olina', price: 19947, bedrooms: 3, beds: 5, rating: '4.53 (34)' },
+  { id: 'ab-1526343579246913701', title: 'High-floor suite with floor-to-ceiling windows', area: 'Honolulu', price: 6379, bedrooms: 1, beds: 4, rating: '5.0 (22)' },
+  { id: 'ab-17992757', title: 'Penthouse with ocean views and a lanai', area: 'Kapolei', price: 20403, bedrooms: 2, beds: 5, rating: '4.92 (38)' },
+  { id: 'ab-940143662986853498', title: 'One block from Waikīkī Beach', area: 'Waikīkī', price: 8060, bedrooms: 1, beds: 5, rating: '4.93 (101)' },
+].map((s) => ({
+  ...s, source: 'airbnb', url: `https://www.airbnb.com/rooms/${s.id.slice(3)}?check_in=${CHECK_IN}&check_out=${CHECK_OUT}&adults=${CREW_SIZE}`,
+  photos: (PHOTOS[s.id] || []).map((p) => `https://a0.muscache.com/im/pictures/${p}?im_w=720`)
+}));
+
+const SEARCHES = {
+  airbnb: [{ label: 'More on Airbnb ↗', url: `https://www.airbnb.com/s/Oahu--HI/homes?checkin=${CHECK_IN}&checkout=${CHECK_OUT}&adults=${CREW_SIZE}` }],
+  other: [
+    { label: 'VRBO ↗', url: `https://www.vrbo.com/search?destination=Oahu%2C%20Hawaii&startDate=${CHECK_IN}&endDate=${CHECK_OUT}&adults=${CREW_SIZE}` },
+    { label: 'Furnished Finder ↗', url: 'https://www.furnishedfinder.com/' },
+  ],
+};
+const VOTES = [
+  { value: 'love', label: '😍 Love it', score: 2 },
+  { value: 'maybe', label: '🤔 Maybe', score: 1 },
+  { value: 'nope', label: '🙅 Nope', score: -2 },
+];
+// ────────────────────────────────────────────────────────────────────────
+
+const $ = (id) => document.getElementById(id);
+const DAY_MS = 86400000;
+const NIGHTS = (Date.parse(CHECK_OUT) - Date.parse(CHECK_IN)) / DAY_MS;
+const fmtDate = (k, opts = { month: 'short', day: 'numeric' }) =>
+  new Date(Date.parse(k + 'T00:00:00Z')).toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' });
+const money = (n) => '$' + Math.round(n).toLocaleString('en-US');
+
+const store = {
+  get(k, fallback) { try { const v = localStorage.getItem(k); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const LOCAL_KEY = `${TRIP}/${EXERCISE}`;
+
+// Small DOM builder; children are strings (set as text, never HTML) or nodes.
+function h(tag, props = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k.startsWith('on')) el[k] = v;
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  el.append(...children.flat().filter((c) => c != null && c !== false));
+  return el;
+}
+
+let toastTimer;
+function toast(msg, isErr = false) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', isErr);
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+}
+
+// ── Data ──
+// Every action is one Sheet row: { type: add | vote | comment | hide | unhide, id, name, ... }.
+// The page replays the rows in order to get listings, votes (latest per person wins), and comments.
+let rows = [];
+
+async function fetchRows() {
+  if (!ENDPOINT) return store.get(LOCAL_KEY, []);
+  const res = await fetch(`${ENDPOINT}?trip=${encodeURIComponent(TRIP)}&exercise=${encodeURIComponent(EXERCISE)}`);
+  return (await res.json()).rows;
+}
+
+async function send(answers) {
+  rows.push({ ...answers, timestamp: new Date().toISOString() });   // show it right away
+  render();
+  if (ENDPOINT) {
+    // text/plain + no-cors avoids a CORS preflight, which Apps Script doesn't answer.
+    await fetch(ENDPOINT, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ trip: TRIP, exercise: EXERCISE, answers })
+    });
+  } else {
+    store.set(LOCAL_KEY, rows);
+  }
+}
+
+function buildState() {
+  const listings = new Map(SEED.map((s, i) => [s.id, { ...s, order: i, votes: new Map(), comments: [], hidden: false }]));
+  rows.forEach((r, i) => {
+    const id = String(r.id || '');
+    const name = String(r.name || '').trim();
+    if (r.type === 'add' && id && !listings.has(id)) {
+      let photos = r.photos;   // the Sheet stores arrays as JSON text
+      if (typeof photos === 'string') { try { photos = JSON.parse(photos); } catch { photos = []; } }
+      listings.set(id, {
+        photos: Array.isArray(photos) ? photos.filter((p) => /^https:\/\//.test(p)) : [],
+        id, source: r.source === 'airbnb' ? 'airbnb' : 'other', title: String(r.title || 'Untitled'), url: String(r.url || ''),
+        price: +r.price || 0, bedrooms: +r.bedrooms || 0, area: String(r.area || ''), notes: String(r.notes || ''),
+        addedBy: name, order: SEED.length + i, votes: new Map(), comments: [], hidden: false
+      });
+      return;
+    }
+    const l = listings.get(id);
+    if (!l) return;
+    if (r.type === 'vote' && name) {
+      if (r.vote) l.votes.set(name.toLowerCase(), { name, vote: r.vote });
+      else l.votes.delete(name.toLowerCase());
+    }
+    if (r.type === 'comment' && name && r.text) l.comments.push({ name, text: String(r.text), at: r.timestamp });
+    if (r.type === 'hide') { l.hidden = true; l.hiddenBy = name; }
+    if (r.type === 'unhide') l.hidden = false;
+  });
+  for (const l of listings.values()) {
+    l.score = [...l.votes.values()].reduce((s, v) => s + (VOTES.find((x) => x.value === v.vote)?.score || 0), 0);
+  }
+  return [...listings.values()];
+}
+
+// ── Rendering ──
+let tab = 'airbnb';
+const openComments = new Set();   // keep comment threads open across re-renders
+
+function myName() { return $('name').value.trim(); }
+function needName() {
+  if (myName()) return false;
+  toast('Add your first name at the top first.', true);
+  $('name').focus();
+  return true;
+}
+
+function sourceLabel(l) {
+  if (l.source === 'airbnb') return 'Airbnb';
+  try { return new URL(l.url).hostname.replace(/^www\./, ''); } catch { return 'listing'; }
+}
+
+// Swipeable photo strip. Only the first photo loads up front; the rest load as you swipe.
+function carousel(l) {
+  const photos = l.photos || [];
+  if (!photos.length) return null;
+  const slides = h('div', { class: 'slides', tabindex: 0, 'aria-label': `Photos of ${l.title}` },
+    photos.map((src, i) => h('img', { src, alt: `${l.title}, photo ${i + 1} of ${photos.length}`,
+      loading: i ? 'lazy' : false, decoding: 'async', referrerpolicy: 'no-referrer',
+      onerror: (e) => e.target.remove() })));
+  if (photos.length === 1) return h('div', { class: 'carousel' }, slides);
+  const count = h('span', { class: 'car-count' });
+  const dots = h('div', { class: 'car-dots', 'aria-hidden': 'true' }, photos.map(() => h('i')));
+  const prev = h('button', { class: 'car-nav prev', type: 'button', 'aria-label': 'Previous photo',
+    onclick: () => slides.scrollBy({ left: -slides.clientWidth, behavior: 'smooth' }) }, '‹');
+  const next = h('button', { class: 'car-nav next', type: 'button', 'aria-label': 'Next photo',
+    onclick: () => slides.scrollBy({ left: slides.clientWidth, behavior: 'smooth' }) }, '›');
+  const sync = () => {
+    const n = slides.children.length;
+    const i = Math.min(n - 1, Math.round(slides.scrollLeft / (slides.clientWidth || 1)));
+    count.textContent = `${i + 1} / ${n}`;
+    [...dots.children].forEach((d, j) => d.classList.toggle('on', j === i));
+    prev.disabled = i === 0;
+    next.disabled = i >= n - 1;
+  };
+  slides.onscroll = sync;
+  requestAnimationFrame(sync);
+  return h('div', { class: 'carousel' }, slides, prev, next, dots, count);
+}
+
+function renderStay(l) {
+  const me = myName().toLowerCase();
+  const mine = l.votes.get(me)?.vote;
+  const facts = [
+    l.bedrooms ? `${l.bedrooms} bedroom${l.bedrooms === 1 ? '' : 's'}` : null,
+    l.beds ? `${l.beds} beds` : null,
+    l.rating ? `★ ${l.rating}` : null,
+  ].filter(Boolean).join(' · ');
+
+  const voters = VOTES.map((v) => {
+    const names = [...l.votes.values()].filter((x) => x.vote === v.value).map((x) => x.name);
+    return names.length ? `${v.label.split(' ')[0]} ${names.join(', ')}` : null;
+  }).filter(Boolean).join('  ·  ');
+
+  const commentsBox = h('details', { class: 'comments', open: openComments.has(l.id) },
+    h('summary', {}, l.comments.length ? `💬 ${l.comments.length} comment${l.comments.length === 1 ? '' : 's'}` : '💬 Comment'),
+    l.comments.map((c) => h('p', { class: 'comment' }, h('b', {}, c.name), c.text,
+      c.at ? h('time', {}, new Date(c.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })) : null)),
+    (() => {
+      const ta = h('textarea', { maxlength: 500, placeholder: 'Pros, cons, questions…', 'aria-label': `Comment on ${l.title}` });
+      const btn = h('button', { class: 'btn go', type: 'button', onclick: async () => {
+        const text = ta.value.trim();
+        if (!text || needName()) return;
+        btn.disabled = true;
+        try { await send({ type: 'comment', id: l.id, name: myName(), text }); toast('Comment posted 🤙'); }
+        catch { toast('Couldn\'t post. Try again or drop it in the group chat.', true); }
+      } }, 'Post');
+      return h('div', { class: 'comment-form' }, ta, btn);
+    })()
+  );
+  commentsBox.ontoggle = () => { commentsBox.open ? openComments.add(l.id) : openComments.delete(l.id); };
+
+  return h('article', { class: 'stay' + (l.score >= 4 ? ' fav' : '') },
+    carousel(l),
+    h('div', { class: 'stay-head' }, h('h3', {}, l.title), l.area ? h('span', { class: 'area' }, l.area) : null),
+    l.price ? h('p', { class: 'price' }, `${money(l.price)} `,
+      h('small', {}, `total · ~${money(l.price / CREW_SIZE)} each · ${money(l.price / NIGHTS)}/night`)) : null,
+    facts ? h('div', { class: 'facts' }, facts) : null,
+    l.notes ? h('p', { class: 'note' }, l.notes, l.addedBy ? h('span', { class: 'who' }, ` (${l.addedBy})`) : null)
+      : l.addedBy ? h('p', { class: 'note' }, h('span', { class: 'who' }, `Added by ${l.addedBy}`)) : null,
+    h('div', { class: 'row' },
+      l.url ? h('a', { class: 'btn', href: l.url, target: '_blank', rel: 'noopener' }, `Open on ${sourceLabel(l)} ↗`) : null,
+      h('div', { class: 'votes' }, VOTES.map((v) => h('button', {
+        class: 'vote', type: 'button', 'aria-pressed': mine === v.value,
+        onclick: async () => {
+          if (needName()) return;
+          try { await send({ type: 'vote', id: l.id, name: myName(), vote: mine === v.value ? '' : v.value }); }
+          catch { toast('Couldn\'t save your vote. Try again?', true); }
+        }
+      }, v.label)))
+    ),
+    voters ? h('p', { class: 'voters' }, voters) : null,
+    commentsBox,
+    h('div', { class: 'row' }, h('button', { class: 'link', type: 'button', onclick: async () => {
+      if (needName() || !confirm(`Hide "${l.title}" for everyone? (Booked, gone, or not a fit. You can bring it back.)`)) return;
+      try { await send({ type: 'hide', id: l.id, name: myName() }); toast('Hidden. It\'s at the bottom if you need it back.'); }
+      catch { toast('Couldn\'t hide it. Try again?', true); }
+    } }, 'Not available / hide'))
+  );
+}
+
+function render() {
+  const all = buildState();
+  for (const t of ['airbnb', 'other']) {
+    const n = all.filter((l) => l.source === t && !l.hidden).length;
+    const btn = $(`tab-${t}`);
+    btn.querySelector('.n').textContent = `(${n})`;
+    btn.setAttribute('aria-selected', t === tab);
+  }
+
+  const sort = $('sort').value;
+  const cmp = {
+    votes: (a, b) => b.score - a.score || b.votes.size - a.votes.size || a.order - b.order,
+    price: (a, b) => (a.price || Infinity) - (b.price || Infinity),
+    bedrooms: (a, b) => b.bedrooms - a.bedrooms || (a.price || Infinity) - (b.price || Infinity),
+    new: (a, b) => b.order - a.order,
+  }[sort];
+  const here = all.filter((l) => l.source === tab);
+  const visible = here.filter((l) => !l.hidden).sort(cmp);
+  const hidden = here.filter((l) => l.hidden);
+
+  const list = $('stays');
+  list.replaceChildren(...visible.map(renderStay));
+  if (!visible.length) {
+    list.append(h('div', { class: 'stay empty' }, tab === 'other'
+      ? 'Nothing here yet. Found a monthly rental on VRBO, Furnished Finder, or a condo-hotel? Add it below 👇'
+      : 'No Airbnbs left. Add one below 👇'));
+  }
+
+  $('search-links').replaceChildren(...SEARCHES[tab].map((s) =>
+    h('a', { class: 'btn', href: s.url, target: '_blank', rel: 'noopener', style: 'margin-left:6px' }, s.label)));
+
+  $('hidden-wrap').hidden = !hidden.length;
+  $('hidden-summary').textContent = `${hidden.length} hidden`;
+  $('hidden-list').replaceChildren(...hidden.map((l) => h('li', {},
+    `${l.title}${l.hiddenBy ? ` (hidden by ${l.hiddenBy})` : ''} `,
+    h('button', { class: 'link', type: 'button', onclick: async () => {
+      if (needName()) return;
+      try { await send({ type: 'unhide', id: l.id, name: myName() }); } catch { toast('Couldn\'t bring it back. Try again?', true); }
+    } }, 'bring back'))));
+}
+
+async function refresh() {
+  try { rows = await fetchRows(); }
+  catch { toast('Couldn\'t load the group\'s votes right now.', true); }
+  render();
+}
+
+// ── Tabs, sort, name ──
+document.querySelectorAll('.tab').forEach((b) => b.onclick = () => {
+  tab = b.dataset.tab;
+  store.set('stays-tab', tab);
+  render();
+});
+$('sort').onchange = () => { store.set('stays-sort', $('sort').value); render(); };
+$('name').addEventListener('change', () => { store.set('name', myName()); render(); });
+
+// ── Add a place ──
+$('add-btn').onclick = async () => {
+  if (needName()) return;
+  let url;
+  try { url = new URL($('add-url').value.trim()); if (!/^https?:$/.test(url.protocol)) throw 0; }
+  catch { toast('Paste the full link (starting with https://).', true); $('add-url').focus(); return; }
+  const title = $('add-title').value.trim();
+  if (!title) { toast('Give it a short name.', true); $('add-title').focus(); return; }
+  const source = /(^|\.)airbnb\./.test(url.hostname) ? 'airbnb' : 'other';
+  const answers = {
+    type: 'add', id: 'u-' + Date.now().toString(36), name: myName(), source, url: url.href, title,
+    price: +$('add-price').value || '', bedrooms: +$('add-bedrooms').value || '',
+    area: $('add-area').value.trim(), notes: $('add-notes').value.trim(),
+    photos: $('add-photos').value.split(/\s+/).filter((p) => /^https:\/\/\S+$/.test(p)).slice(0, 12)
+  };
+  $('add-btn').disabled = true;
+  try {
+    tab = source;
+    await send(answers);
+    ['add-url', 'add-title', 'add-price', 'add-bedrooms', 'add-area', 'add-photos', 'add-notes'].forEach((id) => { $(id).value = ''; });
+    toast(`Added to ${source === 'airbnb' ? 'Airbnb' : 'Other stays'} 🤙`);
+    $('panel').scrollIntoView({ behavior: 'smooth' });
+  } catch {
+    toast('Couldn\'t add it. Drop the link in the group chat instead.', true);
+  } finally {
+    $('add-btn').disabled = false;
+  }
+};
+
+(async function init() {
+  Crew.walk($('walkers'));
+  $('preview-banner').hidden = !!ENDPOINT;
+  $('plan').textContent = `${fmtDate(CHECK_IN)} – ${fmtDate(CHECK_OUT)}, 2027 on Oahu (${NIGHTS} nights, tentative). `
+    + 'Every place here was open for those exact dates when we looked. Vote on each one, leave comments, and add any good finds.';
+  $('checked').textContent = fmtDate(CHECKED, { month: 'short', day: 'numeric', year: 'numeric' });
+  $('name').value = store.get('name', '');
+  tab = store.get('stays-tab', 'airbnb') === 'other' ? 'other' : 'airbnb';
+  $('sort').value = store.get('stays-sort', 'votes');
+  if (!$('sort').value) $('sort').value = 'votes';
+  render();
+  await refresh();
+})();
+</script>
+<script src="../../assets/fx/hawaii-dates.js"></script>
+</body>
+</html>

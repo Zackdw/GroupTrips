@@ -7,7 +7,7 @@ Planning hub for group trips with friends. Each trip gets its own folder; shared
 | Trip | Dates | Crew | Status |
 |------|-------|------|--------|
 | [Japan](trips/2027-02-japan/README.md) | Feb 2027 | TBD | Not started — plan later |
-| [Hawaii](trips/2027-04-hawaii/README.md) | ~Apr 2027, ~1 month | 6 | Idea / gathering input |
+| [Hawaii](trips/2027-04-hawaii/README.md) | Apr 19 – May 15, 2027 (tentative) · Oahu | 6 | Picking lodging |
 | [Italy](trips/2027-08-italy/README.md) | Aug 2027 | TBD | Not started — plan later |
 
 ## Layout
