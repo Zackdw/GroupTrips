@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <link rel="stylesheet" href="../../assets/fx/hawaii-dates.css">
 <style>
   :root {
@@ -32,6 +34,7 @@
     }
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, sans-serif; }
   main { position: relative; z-index: 5; max-width: 760px; margin: -20px auto 0; padding: 0 16px 48px; }
   h1, h2, h3, button.primary, .tab { font-family: 'Fredoka', system-ui, sans-serif; }
@@ -112,6 +115,28 @@
   .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
   .toolbar select { width: auto; flex: 0 1 auto; padding: 8px 10px; }
   .toolbar .grow { flex: 1; }
+  .view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .view-toggle button { font: inherit; font-weight: 600; font-size: .92rem; padding: 7px 12px; border: 0; cursor: pointer;
+    background: var(--card); color: var(--fg); }
+  .view-toggle button[aria-pressed=true] { background: var(--accent); color: var(--accent-fg); }
+
+  /* ── Map view ── */
+  #map { height: min(70vh, 560px); border-radius: 16px; border: 1px solid var(--line); position: relative; z-index: 0; isolation: isolate; }
+  .pin { display: inline-block; transform: translate(-50%, calc(-100% - 6px)); white-space: nowrap; cursor: pointer;
+    font: 700 .8rem/1 system-ui, sans-serif; padding: 5px 8px; border-radius: 999px;
+    background: var(--card); color: var(--fg); border: 2px solid var(--accent); box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
+  .pin::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -5px;
+    border: 5px solid transparent; border-top-color: var(--accent); border-bottom: 0; }
+  .pin.fav { background: var(--coral); color: var(--coral-fg); border-color: var(--coral); }
+  .pin.fav::after { border-top-color: var(--coral); }
+  .pin.meh { opacity: .55; }
+  .pin.cl { background: var(--accent); color: var(--accent-fg); }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--card); color: var(--fg); }
+  .leaflet-popup-content { margin: 10px; font: .9rem/1.4 system-ui, sans-serif; }
+  .pop img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 8px; display: block; margin-bottom: 6px; }
+  .pop b { display: block; font-size: .95rem; margin-bottom: 2px; }
+  .pop .facts { margin-bottom: 8px; }
+  .pop .btn { padding: 6px 10px; font-size: .85rem; }
 
   /* ── Listing cards ── */
   .stays { display: grid; gap: 14px; }
@@ -215,10 +240,18 @@
         <option value="bedrooms">Most bedrooms first</option>
         <option value="new">Newest first</option>
       </select>
+      <div class="view-toggle" role="group" aria-label="View">
+        <button type="button" data-view="list">☰ List</button>
+        <button type="button" data-view="map">🗺️ Map</button>
+      </div>
       <span class="grow"></span>
       <span id="search-links"></span>
     </div>
     <div class="stays" id="stays"></div>
+    <div id="map-wrap" hidden>
+      <div id="map"></div>
+      <p class="hint" id="map-note"></p>
+    </div>
     <details class="hidden-list" id="hidden-wrap" hidden>
       <summary id="hidden-summary"></summary>
       <ul id="hidden-list"></ul>
@@ -246,7 +279,7 @@
         <input type="number" id="add-bedrooms" min="0" step="1" inputmode="numeric">
       </div>
       <div class="field">
-        <label for="add-area">Area <span class="optional">(optional)</span></label>
+        <label for="add-area">Area <span class="optional">(puts it on the map)</span></label>
         <input type="text" id="add-area" maxlength="30" placeholder="e.g. Kailua">
       </div>
     </div>
@@ -264,6 +297,8 @@
 <footer>Mahalo! 🤙 Questions? Ask in the group chat.</footer>
 <div id="toast" role="status" hidden></div>
 
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="../../assets/crew.js"></script>
 <script>
 // ── Config ──────────────────────────────────────────────────────────────
@@ -298,26 +333,27 @@ const PHOTOS = {
 };
 
 // Airbnb search for Oahu, these exact dates, 6 guests. Prices = total for the stay.
+// `at` is the approximate spot Airbnb shows on its map (deliberately fuzzed, not the address).
 // Ids are prefixed so the Sheet keeps them as text (long numbers lose digits).
 const SEED = [
-  { id: 'ab-754672037998729991', title: 'Modern Ko Olina townhouse with resort access', area: 'Ko Olina', price: 7217, bedrooms: 3, beds: 3, rating: '4.77 (31)' },
-  { id: 'ab-1298284686338173041', title: 'Renovated Ko Olina villa with golf cart', area: 'Ko Olina', price: 11797, bedrooms: 3, beds: 4, rating: '4.96 (23)' },
-  { id: 'ab-1019034699346706944', title: 'Mountain views and a patio near Mākaha', area: 'Mākaha', price: 11568, bedrooms: 3, beds: 6, rating: '4.91 (58)' },
-  { id: 'ab-48742967', title: 'Renovated condo near Waikīkī Beach', area: 'Waikīkī', price: 4880, bedrooms: 2, beds: 3, rating: '4.52 (142)' },
-  { id: 'ab-41911945', title: 'Beachfront with ocean views at Ko Olina', area: 'Ko Olina', price: 24509, bedrooms: 3, beds: 4, rating: '4.91 (78)' },
-  { id: 'ab-1676350749541995785', title: 'Ocean-view duplex near North Shore surf', area: 'Hauʻula', price: 13562, bedrooms: 3, beds: 4, rating: 'New' },
-  { id: 'ab-1715598233490728356', title: 'Ocean and mountain views in Mākaha', area: 'Mākaha', price: 18840, bedrooms: 3, beds: 4 },
-  { id: 'ab-46024687', title: 'Beachfront penthouse with ocean and mountain views', area: 'Hauʻula', price: 16050, bedrooms: 3, beds: 4, rating: '4.76 (159)' },
-  { id: 'ab-1808462838271539676', title: 'Free parking and laundry near Honolulu', area: 'Honolulu', price: 9240, bedrooms: 4, rating: 'New' },
-  { id: 'ab-1042955878509546420', title: 'Renovated beach house in surf-town Haleʻiwa', area: 'North Shore', price: 16028, bedrooms: 3, beds: 3, rating: '4.98 (61)' },
-  { id: 'ab-629988964322494103', title: 'Kahala home with a pool near the beach', area: 'Kahala', price: 8828, bedrooms: 3, beds: 4, rating: '4.2 (5)' },
-  { id: 'ab-30931993', title: 'Walk to Turtle Bay Resort and beach', area: 'North Shore', price: 11926, bedrooms: 2, beds: 3, rating: '4.99 (196)' },
-  { id: 'ab-947825154780065214', title: 'Resort villa with pool near Ko Olina Lagoons', area: 'Ko Olina', price: 24189, bedrooms: 3, beds: 4, rating: '5.0 (46)' },
-  { id: 'ab-1743109422644480252', title: 'Harbor views from the 29th floor', area: 'Honolulu', price: 8646, bedrooms: 1, beds: 6, rating: '5.0 (4)' },
-  { id: 'ab-989827168365584053', title: 'Ko Olina villa with pool and lagoons', area: 'Ko Olina', price: 19947, bedrooms: 3, beds: 5, rating: '4.53 (34)' },
-  { id: 'ab-1526343579246913701', title: 'High-floor suite with floor-to-ceiling windows', area: 'Honolulu', price: 6379, bedrooms: 1, beds: 4, rating: '5.0 (22)' },
-  { id: 'ab-17992757', title: 'Penthouse with ocean views and a lanai', area: 'Kapolei', price: 20403, bedrooms: 2, beds: 5, rating: '4.92 (38)' },
-  { id: 'ab-940143662986853498', title: 'One block from Waikīkī Beach', area: 'Waikīkī', price: 8060, bedrooms: 1, beds: 5, rating: '4.93 (101)' },
+  { id: 'ab-754672037998729991', at: [21.33542, -158.11172], title: 'Modern Ko Olina townhouse with resort access', area: 'Ko Olina', price: 7217, bedrooms: 3, beds: 3, rating: '4.77 (31)' },
+  { id: 'ab-1298284686338173041', at: [21.3366, -158.1072], title: 'Renovated Ko Olina villa with golf cart', area: 'Ko Olina', price: 11797, bedrooms: 3, beds: 4, rating: '4.96 (23)' },
+  { id: 'ab-1019034699346706944', at: [21.48193, -158.18957], title: 'Mountain views and a patio near Mākaha', area: 'Mākaha', price: 11568, bedrooms: 3, beds: 6, rating: '4.91 (58)' },
+  { id: 'ab-48742967', at: [21.28624, -157.83197], title: 'Renovated condo near Waikīkī Beach', area: 'Waikīkī', price: 4880, bedrooms: 2, beds: 3, rating: '4.52 (142)' },
+  { id: 'ab-41911945', at: [21.3351, -158.1227], title: 'Beachfront with ocean views at Ko Olina', area: 'Ko Olina', price: 24509, bedrooms: 3, beds: 4, rating: '4.91 (78)' },
+  { id: 'ab-1676350749541995785', at: [21.6027, -157.8985], title: 'Ocean-view duplex near North Shore surf', area: 'Hauʻula', price: 13562, bedrooms: 3, beds: 4, rating: 'New' },
+  { id: 'ab-1715598233490728356', at: [21.48483, -158.19334], title: 'Ocean and mountain views in Mākaha', area: 'Mākaha', price: 18840, bedrooms: 3, beds: 4 },
+  { id: 'ab-46024687', at: [21.58948, -157.89082], title: 'Beachfront penthouse with ocean and mountain views', area: 'Hauʻula', price: 16050, bedrooms: 3, beds: 4, rating: '4.76 (159)' },
+  { id: 'ab-1808462838271539676', at: [21.27857, -157.82518], title: 'Free parking and laundry near Honolulu', area: 'Honolulu', price: 9240, bedrooms: 4, rating: 'New' },
+  { id: 'ab-1042955878509546420', at: [21.5889, -158.10251], title: 'Renovated beach house in surf-town Haleʻiwa', area: 'North Shore', price: 16028, bedrooms: 3, beds: 3, rating: '4.98 (61)' },
+  { id: 'ab-629988964322494103', at: [21.26647, -157.78187], title: 'Kahala home with a pool near the beach', area: 'Kahala', price: 8828, bedrooms: 3, beds: 4, rating: '4.2 (5)' },
+  { id: 'ab-30931993', at: [21.7007, -157.9945], title: 'Walk to Turtle Bay Resort and beach', area: 'North Shore', price: 11926, bedrooms: 2, beds: 3, rating: '4.99 (196)' },
+  { id: 'ab-947825154780065214', at: [21.3333, -158.1222], title: 'Resort villa with pool near Ko Olina Lagoons', area: 'Ko Olina', price: 24189, bedrooms: 3, beds: 4, rating: '5.0 (46)' },
+  { id: 'ab-1743109422644480252', at: [21.3093, -157.8608], title: 'Harbor views from the 29th floor', area: 'Honolulu', price: 8646, bedrooms: 1, beds: 6, rating: '5.0 (4)' },
+  { id: 'ab-989827168365584053', at: [21.3351, -158.1227], title: 'Ko Olina villa with pool and lagoons', area: 'Ko Olina', price: 19947, bedrooms: 3, beds: 5, rating: '4.53 (34)' },
+  { id: 'ab-1526343579246913701', at: [21.3093, -157.8608], title: 'High-floor suite with floor-to-ceiling windows', area: 'Honolulu', price: 6379, bedrooms: 1, beds: 4, rating: '5.0 (22)' },
+  { id: 'ab-17992757', at: [21.3346, -158.12296], title: 'Penthouse with ocean views and a lanai', area: 'Kapolei', price: 20403, bedrooms: 2, beds: 5, rating: '4.92 (38)' },
+  { id: 'ab-940143662986853498', at: [21.2747, -157.8209], title: 'One block from Waikīkī Beach', area: 'Waikīkī', price: 8060, bedrooms: 1, beds: 5, rating: '4.93 (101)' },
 ].map((s) => ({
   ...s, source: 'airbnb', url: `https://www.airbnb.com/rooms/${s.id.slice(3)}?check_in=${CHECK_IN}&check_out=${CHECK_OUT}&adults=${CREW_SIZE}`,
   photos: (PHOTOS[s.id] || []).map((p) => `https://a0.muscache.com/im/pictures/${p}?im_w=720`)
@@ -409,6 +445,7 @@ function buildState() {
         photos: Array.isArray(photos) ? photos.filter((p) => /^https:\/\//.test(p)) : [],
         id, source: r.source === 'airbnb' ? 'airbnb' : 'other', title: String(r.title || 'Untitled'), url: String(r.url || ''),
         price: +r.price || 0, bedrooms: +r.bedrooms || 0, area: String(r.area || ''), notes: String(r.notes || ''),
+        at: +r.lat && +r.lng ? [+r.lat, +r.lng] : null,
         addedBy: name, order: SEED.length + i, votes: new Map(), comments: [], hidden: false
       });
       return;
@@ -506,7 +543,7 @@ function renderStay(l) {
   );
   commentsBox.ontoggle = () => { commentsBox.open ? openComments.add(l.id) : openComments.delete(l.id); };
 
-  return h('article', { class: 'stay' + (l.score >= 4 ? ' fav' : '') },
+  return h('article', { class: 'stay' + (l.score >= 4 ? ' fav' : ''), id: `stay-${l.id}` },
     carousel(l),
     h('div', { class: 'stay-head' }, h('h3', {}, l.title), l.area ? h('span', { class: 'area' }, l.area) : null),
     l.price ? h('p', { class: 'price' }, `${money(l.price)} `,
@@ -562,6 +599,10 @@ function render() {
       ? 'Nothing here yet. Found a monthly rental on VRBO, Furnished Finder, or a condo-hotel? Add it below 👇'
       : 'No Airbnbs left. Add one below 👇'));
   }
+  document.querySelectorAll('.view-toggle button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === view));
+  list.hidden = view === 'map';
+  $('map-wrap').hidden = view !== 'map';
+  drawMap(visible);
 
   $('search-links').replaceChildren(...SEARCHES[tab].map((s) =>
     h('a', { class: 'btn', href: s.url, target: '_blank', rel: 'noopener', style: 'margin-left:6px' }, s.label)));
@@ -574,6 +615,73 @@ function render() {
       if (needName()) return;
       try { await send({ type: 'unhide', id: l.id, name: myName() }); } catch { toast('Couldn\'t bring it back. Try again?', true); }
     } }, 'bring back'))));
+}
+
+// ── Map ──
+let view = 'list';
+let map, pinLayer, fittedTo = '';
+const shortMoney = (n) => n >= 1000 ? `$${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : money(n);
+
+function drawMap(places) {
+  if (view !== 'map') return;
+  if (!window.L) { $('map-note').textContent = 'The map couldn\'t load. Try the list view.'; return; }
+  if (!map) {
+    map = L.map('map', { scrollWheelZoom: false }).setView([21.47, -157.98], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    // Nearby pins merge into a "6 places" bubble; tap it to zoom in (or fan out places in the same building).
+    pinLayer = L.markerClusterGroup ? L.markerClusterGroup({
+      maxClusterRadius: 40, showCoverageOnHover: false, spiderfyDistanceMultiplier: 2.2,
+      iconCreateFunction: (c) => L.divIcon({ className: '', iconSize: null,
+        html: `<span class="pin cl">${c.getChildCount()} places</span>` })
+    }) : L.layerGroup();
+    pinLayer.addTo(map);
+  }
+  requestAnimationFrame(() => map.invalidateSize());
+  pinLayer.clearLayers();
+
+  const onMap = places.filter((l) => l.at);
+  const points = onMap.map((l) => {
+    const at = l.at;
+    const icon = L.divIcon({ className: '', iconSize: null,
+      html: `<span class="pin${l.score >= 4 ? ' fav' : l.score < 0 ? ' meh' : ''}">${l.price ? shortMoney(l.price) : '•'}</span>` });
+    L.marker(at, { icon, title: l.title, riseOnHover: true }).bindPopup(() => popup(l), { minWidth: 220, maxWidth: 240 }).addTo(pinLayer);
+    return at;
+  });
+
+  const key = onMap.map((l) => l.id).sort().join();
+  if (points.length && key !== fittedTo) {
+    map.fitBounds(points, { padding: [40, 40], maxZoom: 13 });
+    fittedTo = key;
+  }
+  const missing = places.length - onMap.length;
+  $('map-note').textContent = (places.length ? 'Pins show the approximate area (hosts hide the exact spot) and the total price. Tap one for details.' : 'Nothing on the map yet.')
+    + (missing ? ` ${missing} place${missing === 1 ? ' isn\'t' : 's aren\'t'} on the map (no area given).` : '');
+}
+
+function popup(l) {
+  const voters = [...l.votes.values()].map((v) => `${VOTES.find((x) => x.value === v.vote)?.label.split(' ')[0] || ''} ${v.name}`).join(', ');
+  return h('div', { class: 'pop' },
+    l.photos?.length ? h('img', { src: l.photos[0], alt: '', referrerpolicy: 'no-referrer' }) : null,
+    h('b', {}, l.title),
+    h('div', { class: 'facts' }, [
+      l.area,
+      l.price ? `${money(l.price)} (~${money(l.price / CREW_SIZE)} each)` : null,
+      l.bedrooms ? `${l.bedrooms} bd` : null,
+    ].filter(Boolean).join(' · ')),
+    voters ? h('div', { class: 'facts' }, voters) : null,
+    h('button', { class: 'btn go', type: 'button', onclick: () => {
+      setView('list');
+      $(`stay-${l.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } }, 'Photos, votes & comments')
+  );
+}
+
+function setView(v) {
+  view = v === 'map' ? 'map' : 'list';
+  store.set('stays-view', view);
+  render();
 }
 
 async function refresh() {
@@ -589,6 +697,7 @@ document.querySelectorAll('.tab').forEach((b) => b.onclick = () => {
   render();
 });
 $('sort').onchange = () => { store.set('stays-sort', $('sort').value); render(); };
+document.querySelectorAll('.view-toggle button').forEach((b) => b.onclick = () => setView(b.dataset.view));
 $('name').addEventListener('change', () => { store.set('name', myName()); render(); });
 
 // ── Add a place ──
@@ -607,6 +716,14 @@ $('add-btn').onclick = async () => {
     photos: $('add-photos').value.split(/\s+/).filter((p) => /^https:\/\/\S+$/.test(p)).slice(0, 12)
   };
   $('add-btn').disabled = true;
+  if (answers.area) {
+    // Rough map pin from the area name (OpenStreetMap's free geocoder); skipped if it fails.
+    try {
+      const q = encodeURIComponent(`${answers.area}, Oahu, Hawaii`);
+      const [hit] = await (await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q=${q}`)).json();
+      if (hit) { answers.lat = +(+hit.lat).toFixed(4); answers.lng = +(+hit.lon).toFixed(4); }
+    } catch {}
+  }
   try {
     tab = source;
     await send(answers);
@@ -630,6 +747,8 @@ $('add-btn').onclick = async () => {
   tab = store.get('stays-tab', 'airbnb') === 'other' ? 'other' : 'airbnb';
   $('sort').value = store.get('stays-sort', 'votes');
   if (!$('sort').value) $('sort').value = 'votes';
+  // ?view=map links straight to the map
+  view = (new URLSearchParams(location.search).get('view') || store.get('stays-view', 'list')) === 'map' ? 'map' : 'list';
   render();
   await refresh();
 })();
